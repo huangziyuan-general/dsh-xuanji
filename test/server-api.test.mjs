@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 import { registerServerApi } from '../lib/server-api.js';
+import http from 'node:http';
 import { FENCE_HEADER, PREFIX } from '../lib/server-http.js';
 
 /** 物化 registerServerApi：抓出注册的 handler。 */
@@ -189,4 +190,52 @@ test('GET /chenggu：时辰齐全出总骨重；缺时辰 → 400 可读错误',
     await handler(req(`${PREFIX}/chenggu?year=1984&month=2&day=2`), res);
     assert.equal(res.status, 400);
     assert.match(res.json().error.message, /时辰/);
+});
+
+// ── 奇门 REST 面（GET /qimen，时辰必填 fail-fast，缺时不给默认值）──
+
+async function startQimenPanel() {
+    const handlers = [];
+    registerServerApi({
+        inject: (_deps, fn) => fn({
+            effect: (cb) => cb(),
+            webServer: { register: (r) => handlers.push(r) },
+        }),
+    }, { dayunCount: 8, ziShi: 1 });
+    const server = http.createServer((req, res) => {
+        const h = handlers.find((x) => req.url.startsWith(x.path));
+        if (!h) { res.writeHead(404); res.end(); return; }
+        Promise.resolve(h.handler(req, res)).catch(() => {});
+    });
+    await new Promise((r) => server.listen(0, '127.0.0.1', r));
+    const port = server.address().port;
+    const call = async (path) => {
+        const r = await fetch(`http://127.0.0.1:${port}${path}`, {
+            headers: { host: 'localhost', 'x-dsh-xuanji': '1' },
+        });
+        return { status: r.status, body: await r.json() };
+    };
+    return { call, close: () => server.close() };
+}
+
+test('P 奇门 REST：GET /qimen 给日期+时辰出 200 且含局数/值符/八宫', async () => {
+    const { call, close } = await startQimenPanel();
+    try {
+        const r = await call('/api/xuanji/qimen?year=2026&month=10&day=23&hour=14');
+        assert.equal(r.status, 200, `期望 200，实得 ${r.status}`);
+        assert.equal(r.body.ok, true);
+        assert.ok(r.body.value?.meta?.ju, '应有 ju（局数）');
+        assert.equal(typeof r.body.value.zhiFu, 'string', '应有值符');
+        assert.equal(Object.keys(r.body.value.palaces).length, 8, '八宫齐全（除中宫外）');
+    } finally { close(); }
+});
+
+test('P 奇门 REST：缺 hour 必须 400 fail-fast（不许默认午时）', async () => {
+    const { call, close } = await startQimenPanel();
+    try {
+        const r = await call('/api/xuanji/qimen?year=2026&month=10&day=23');
+        assert.equal(r.status, 400);
+        assert.equal(r.body.ok, false);
+        assert.match(r.body.error.message, /hour|时辰/);
+    } finally { close(); }
 });

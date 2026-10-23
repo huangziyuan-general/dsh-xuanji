@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { computeFengshui, mingGua, eightStars, yearlyFlying, NINE_STARS, MOUNTAINS_24, mountainInfo, sittingFromFacing } from '../lib/engine/fengshui.js';
+import { computeFengshui, mingGua, eightStars, yearlyFlying, yearZibaiStar, NINE_STARS, MOUNTAINS_24, mountainInfo, sittingFromFacing } from '../lib/engine/fengshui.js';
 import { Lunar } from 'lunar-javascript';
 
 test('命卦锚点（已查证世纪口径）：1990男坎/1990女艮/2000男离/2000女乾/2026男坎/2026女艮', () => {
@@ -41,7 +41,7 @@ test('大游年：八星齐全，生气配对与东西四命互合（坎巽、�
 });
 
 test('流年飞星：2026 一白入中（公开事实），九宫盘 9 宫、五黄落位确定', () => {
-    const f = yearlyFlying(Lunar.fromYmd(2026, 6, 1));
+    const f = yearlyFlying(2026);
     assert.equal(f.center, 1);
     assert.equal(f.palaces.length, 9);
     const wuhuang = f.palaces.find((p) => p.num === 5);
@@ -153,4 +153,16 @@ test('工具面回归：parameters 必须声明 action（参数白名单严格�
     assert.equal(r.meta.houseGua, '坎');
     const natal = await tool.execute({ year: 1990, month: 8, day: 16, gender: 'male' });
     assert.ok(natal.mingGua);
+});
+
+test('年紫白公式锚点（公开表）：2024三碧/2025二黑/2026一白/2027九紫/2034二黑/2035一白/2040五黄', () => {
+    for (const [y, star] of [[2024, 3], [2025, 2], [2026, 1], [2027, 9], [2034, 2], [2035, 1], [2040, 5]]) {
+        assert.equal(yearZibaiStar(y), star, `${y} 应 ${NINE_STARS[star].name}`);
+    }
+});
+
+test('computeFengshui fortuneYear 参数真实生效（传 2035 出一白入中，而非当前年）', () => {
+    const f = computeFengshui({ year: 1990, month: 8, day: 16, gender: 'male', fortuneYear: 2035 });
+    assert.equal(f.yearlyFlying.center, 1);
+    assert.equal(f.yearlyFlying.centerName, '一白');
 });

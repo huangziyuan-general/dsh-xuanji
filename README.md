@@ -19,7 +19,16 @@
 ## 安装
 
 ```bash
-dsh plugin add github:huangziyuan-general/dsh-xuanji
+# 从 npm 安装（推荐——已发版，拉取无需任何凭据）
+dsh plugin --profile web add npm:dsh-xuanji
+
+# 从 GitHub 公开仓库（⚠️ github: 简写经 pnpm 走 SSH——机器要配好 GitHub SSH key
+# 且 ~/.ssh/known_hosts 里有 github.com 主机指纹，否则更新报 Host key verification failed；
+# 没配 SSH 就用上面的 npm 源，公共仓库拉取无需任何凭据）
+dsh plugin --profile web add github:huangziyuan-general/dsh-xuanji
+
+# 本地开发（符号链接，改码即生效）
+dsh plugin --profile web add link:/path/to/dsh-xuanji
 ```
 
 要求 Node.js ≥ 20。
@@ -31,7 +40,7 @@ dsh plugin add github:huangziyuan-general/dsh-xuanji
 - **缺输入先问不猜**：生辰 / 性别 / 时辰缺失时必须询问用户，绝不允许模型代填猜测值；
 - **断语出处标注**：每条断语区分「传统原文 / 传统通行口径 / 简化判定 / 白话自撰 / 自建字库」五级出处，工具未覆盖的如实说明，不臆断补全。
 
-## 工具面（14 个 `xuanji_*` 工具）
+## 工具面（15 个 `xuanji_*` 工具）
 
 | 工具 | 用途 | 关键输入 |
 |---|---|---|
@@ -49,6 +58,7 @@ dsh plugin add github:huangziyuan-general/dsh-xuanji
 | `xuanji_xiaoliuren` | 小六壬马前课：农历月日时或报三数掐指落宫，六宫吉凶断语 | mode（time/number） |
 | `xuanji_match` | 八字合婚/合盘：属相关系（六合三合六冲六害相刑）+ 日主生克/天干五合 + 年命纳音 + 简化分档，冲刑害只讲「摩擦点」 | 双方出生年月日（时辰可选） |
 | `xuanji_numerology` | 生命数字（西方数字学）：生命路径数/生日数/态度数（11/22/33 主数保留）+ 白话数义，与八字紫微不同口径 | 公历出生年月日 |
+| `xuanji_qimen` | 奇门遁甲（时家转盘·拆补法简化口径）：阳遁/阴遁、节气局数、符头、时干支、值符、旬空、八宫地盘九星/天盘九星/八门落宫；时辰必填 | 日期 + 时辰（公历/农历） |
 
 历法与紫微安星由开源确定性计算库承担（见 `package.json` 依赖清单），六十四卦表内置并经完整性与《观梅占》复原双重校验。
 

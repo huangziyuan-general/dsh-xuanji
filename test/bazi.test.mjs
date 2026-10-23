@@ -152,3 +152,18 @@ test('年柱口径：非窗口期出生不产生 yearScopeNote（1990-08-16）',
     const r = computeBazi({ year: 1990, month: 8, day: 16, hour: 14, gender: 'male' });
     assert.equal(r.meta.yearScopeNote, undefined);
 });
+
+// ── 晚子时（23:00–24:00）日柱口径：插件 ziShi 语义 1=次日（默认，与主流排盘软件一致）；2=当日。
+// 实测锚点：1990-08-16 23:30 男 → ziShi=1 日柱 甲寅（次日）；ziShi=2 日柱 癸丑（当日）。
+test('晚子时 ziShi=1（默认）：日柱按次日 甲寅，时柱 甲子', () => {
+    const b = computeBazi({ year: 1990, month: 8, day: 16, hour: 23, minute: 30, gender: 'male' }, { ziShi: 1 });
+    assert.equal(b.pillars.day.ganZhi, '甲寅');
+    assert.equal(b.pillars.hour.ganZhi, '甲子');
+    assert.ok(b.meta.lateZiNote);
+});
+
+test('晚子时 ziShi=2：日柱按当日 癸丑，时柱 甲子', () => {
+    const b = computeBazi({ year: 1990, month: 8, day: 16, hour: 23, minute: 30, gender: 'male' }, { ziShi: 2 });
+    assert.equal(b.pillars.day.ganZhi, '癸丑');
+    assert.equal(b.pillars.hour.ganZhi, '甲子');
+});
