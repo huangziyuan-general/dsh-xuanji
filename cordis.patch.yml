@@ -1,0 +1,11 @@
+# dsh-xuanji bundle patch: one insert registering the xuanji plugin.
+# The row id MUST match the exported cordis `name` (lib/index.js).
+- insert:
+    - id: 'dsh-xuanji'
+      name: 'dsh-xuanji'
+      config:
+        # 与 lib/index.js Config 默认值保持一致。
+        dayunCount: 8
+        # 晚子时（23:00–24:00）日柱口径：1=按次日（默认，与主流排盘一致）；2=按当日。
+        ziShi: 1
+        skipSkillRegister: false

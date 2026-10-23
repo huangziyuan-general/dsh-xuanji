@@ -1,0 +1,14 @@
+# 依赖与构建中间物
+node_modules/
+
+# 本机工作数据与审计草稿（不进仓库）
+.workbuddy/
+AUDIT-*.md
+
+# 冒烟与临时探针
+probe-*.js
+probe-*.mjs
+
+# 系统与日志
+.DS_Store
+*.log

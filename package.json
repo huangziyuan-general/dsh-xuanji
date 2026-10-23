@@ -1,0 +1,95 @@
+{
+  "name": "dsh-xuanji",
+  "version": "0.1.0",
+  "description": "玄机阁（dsh-xuanji）：DSH 玄学算命插件。八字、紫微斗数、梅花易数、黄历、称骨、星座、择日、风水（八宅+门主灶）、起名（评估+候选生成）、人生K线、塔罗、小六壬——全部由本地确定性引擎计算（干支/星曜/卦象/骨重零模型推演），模型只负责解读；四层输出纪律，缺输入先问不猜。内置夏令时与真太阳时校正，附带右侧栏面板（人生K线 SVG 图 + 塔罗翻牌动画，只读 REST 数据面）。Fortune-telling plugin for DeepSeek Harness (DSH) with fully deterministic local engines.",
+  "keywords": [
+    "deepseek",
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "xuanji",
+    "bazi",
+    "ziwei",
+    "紫微斗数",
+    "iching",
+    "meihua",
+    "fortune-telling",
+    "八字",
+    "算命",
+    "梅花易数",
+    "黄历",
+    "称骨",
+    "星座",
+    "玄学",
+    "择日",
+    "风水",
+    "起名",
+    "八宅",
+    "九宫飞星"
+  ],
+  "license": "MIT",
+  "author": "huangshengju",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huangziyuan-general/dsh-xuanji.git"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "cordis.patch.yml",
+    "lib",
+    "skills"
+  ],
+  "dependencies": {
+    "iztro": "^2.6.3",
+    "lunar-javascript": "^1.7.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "*",
+    "@deepseek-ai/schemastery": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "@deepseek-ai/schemastery": "*",
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build": "node scripts/build-client.mjs",
+    "pretest": "npm run build",
+    "test": "node --test test/*.test.mjs",
+    "probe": "node probe-engines.mjs"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dshReleases": {
+        "0.1.7-rc.2": "compatible",
+        "0.2.0-rc.1": "compatible",
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.2": "compatible"
+      }
+    }
+  }
+}
