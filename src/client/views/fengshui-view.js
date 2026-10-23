@@ -85,7 +85,7 @@ function MingGuaResult({ result }) {
 		h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' } },
 			h(Card, { title: '四吉方位' },
 				h('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
-					lucky.map((x) => dirRow(x, 'var(--o-lucky')))),
+					lucky.map((x) => dirRow(x, 'var(--o-lucky)')))),
 			h(Card, { title: '四凶方位' },
 				h('div', { style: { display: 'flex', flexDirection: 'column', gap: '4px' } },
 					unlucky.map((x) => dirRow(x, 'var(--o-danger)'))),
@@ -100,7 +100,8 @@ function MingGuaResult({ result }) {
 
 /** 飞星结果：九宫格（洛书方位布局）+ 吉凶星着色。 */
 function FlyingResult({ result }) {
-	const fy = result ?? {};
+	// REST /fengshui?fyYear= 返回 { yearlyFlying: {...} }，命卦结果里内嵌的同名块是裸的——两种形状都接。
+	const fy = result?.yearlyFlying ?? result ?? {};
 	const palaces = fy.palaces ?? [];
 	// 屏幕布局：巽(东南)-离(正南)-坤(西南) / 震(正东)-中-兑(正西) / 艮(东北)-坎(正北)-乾(西北)
 	const byName = {};

@@ -534,6 +534,33 @@ test('渲染：时辰一律下拉选择（手输 0–23 会错时柱），且小
     }
 });
 
+test('渲染：风水页四吉方位颜色合法 + 飞星结果兼容两种响应形状', () => {
+    const { loaded } = boot();
+    const { FengshuiView } = loaded.exports.__internals;
+    const NATAL = {
+        meta: { birth: '1990-08-16', guaYear: 1990 },
+        mingGua: { gua: '坎', group: '东四命', direction: '正北', compatible: '宜东四宅' },
+        luckyDirections: [{ star: '生气', direction: '东南', palace: '巽' }],
+        unluckyDirections: [{ star: '绝命', direction: '西南', palace: '坤' }],
+        yearlyFlying: { center: 1, centerName: '一白', palaces: [
+            { palace: '坎', direction: '正北', num: 6, name: '六白', star: '武曲', element: '金', lucky: true },
+            { palace: '中', direction: '中宫', num: 1, name: '一白', star: '贪狼', element: '水', lucky: true },
+        ] },
+    };
+    // fyResult 两种形状都要能渲染：REST 包一层 { yearlyFlying }，内嵌块是裸的
+    for (const fyResult of [{ yearlyFlying: NATAL.yearlyFlying }, NATAL.yearlyFlying]) {
+        const html = JSON.stringify(FengshuiView({
+            state: { fengshui: { form: {}, fyForm: { fyYear: '2035' }, result: NATAL, fyResult } },
+        }));
+        assert.ok(html.includes('四吉方位'), '命卦结果必须有四吉方位卡');
+        assert.ok(html.includes('"color":"var(--o-lucky)"'),
+            '四吉星名颜色必须是合法 var(--o-lucky)（曾少半个括号导致掉色）');
+        assert.ok(html.includes('六白') && html.includes('武曲'),
+            '飞星九宫格必须能取到星名数据（曾因响应层级不匹配全渲染成 —）');
+        assert.ok(!html.includes('">—<'), '飞星格不允许出现空宫占位符');
+    }
+});
+
 test('构建产物守卫：PLUGIN_VERSION 与 package.json 一致；fence/PREFIX 与服务端一致', () => {
     const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
     const src = fs.readFileSync(new URL('../src/client/index.js', import.meta.url), 'utf8');
