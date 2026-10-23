@@ -111,15 +111,14 @@ export const buildCss = (attr = PANEL_ATTR, id = STYLE_ID) => `
 
 /* ═══════════════════════════ ③ 导航 ═══════════════════════════ */
 .o-nav {
-  display: flex; gap: 3px; padding: 3px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px;
   background: var(--o-surface);
   border: 1px solid var(--o-border);
   border-radius: 11px;
 }
 .o-tab {
-  flex: 1 1 0; min-width: 0;
   display: flex; flex-direction: column; align-items: center; gap: 1px;
-  padding: 5px 2px 4px;
+  padding: 4px 1px 3px;
   border: 0; border-radius: 8px;
   background: transparent; color: var(--o-muted);
   font-family: inherit; font-size: 11px; font-weight: 500;
@@ -132,8 +131,8 @@ export const buildCss = (attr = PANEL_ATTR, id = STYLE_ID) => `
   color: var(--o-text);
   box-shadow: var(--o-shadow);
 }
-.o-tab-glyph { font-size: 13px; line-height: 1.1; font-family: var(--o-serif); }
-.o-tab-label { font-size: 10.5px; white-space: nowrap; }
+.o-tab-glyph { font-size: 12px; line-height: 1.1; font-family: var(--o-serif); }
+.o-tab-label { font-size: 10px; white-space: nowrap; }
 .o-tab[aria-selected="true"]::after {
   content: ""; position: absolute; left: 50%; bottom: 1px;
   width: 13px; height: 2px; margin-left: -6.5px;

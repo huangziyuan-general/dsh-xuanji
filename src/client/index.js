@@ -18,6 +18,9 @@ import { BaziView, PillarCard, WuxingBars, RelationBadges, ShenShaChips } from '
 import { AlmanacView } from './views/almanac-view.js';
 import { QuickView } from './views/quick-view.js';
 import { ChengguView } from './views/chenggu-view.js';
+import { QimenView } from './views/qimen-view.js';
+import { FengshuiView } from './views/fengshui-view.js';
+import { MatchView } from './views/match-view.js';
 import { TrendView } from './views/trend-view.js';
 import { HOUR_OPTIONS, hourToZhi } from './views/ui.js';
 
@@ -78,5 +81,6 @@ export const __internals = {
 	buildTrendSpec, renderTrendSvg, TarotCard, TarotView,
 	BaziView, PillarCard, WuxingBars, RelationBadges, ShenShaChips,
 	AlmanacView, QuickView, ChengguView, TrendView,
+	QimenView, FengshuiView, MatchView,
 	HOUR_OPTIONS, hourToZhi,
 };

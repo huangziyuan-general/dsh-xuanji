@@ -218,7 +218,7 @@ async function startQimenPanel() {
     return { call, close: () => server.close() };
 }
 
-test('P 奇门 REST：GET /qimen 给日期+时辰出 200 且含局数/值符/八宫', async () => {
+test('P 奇门 REST：GET /qimen 给日期+时辰出 200 且含局数/值符/值使/九宫', async () => {
     const { call, close } = await startQimenPanel();
     try {
         const r = await call('/api/xuanji/qimen?year=2026&month=10&day=23&hour=14');
@@ -226,7 +226,9 @@ test('P 奇门 REST：GET /qimen 给日期+时辰出 200 且含局数/值符/八
         assert.equal(r.body.ok, true);
         assert.ok(r.body.value?.meta?.ju, '应有 ju（局数）');
         assert.equal(typeof r.body.value.zhiFu, 'string', '应有值符');
-        assert.equal(Object.keys(r.body.value.palaces).length, 8, '八宫齐全（除中宫外）');
+        assert.equal(typeof r.body.value.zhiShi?.gate, 'string', '应有值使门');
+        assert.equal(Object.keys(r.body.value.palaces).length, 9, '九宫齐全（含中宫）');
+        assert.equal(r.body.value.men[5], null, '中宫无门');
     } finally { close(); }
 });
 

@@ -1,4 +1,4 @@
-// src/client/panel.js — 右侧栏「玄机阁」面板外壳：品牌头 + 六页导航 + 视图容器。
+// src/client/panel.js — 右侧栏「玄机阁」面板外壳：品牌头 + 九页导航 + 视图容器。
 //
 // 状态机与业务校验仍放在 createXuanjiController（headless 可直测，不必渲染 React）；
 // 这个文件负责「看起来像正经产品」的那一层：导航奏GRAPH、疑问 forms、交流与析木 HEADER。
@@ -14,6 +14,9 @@ import { BaziView } from './views/bazi-view.js';
 import { AlmanacView } from './views/almanac-view.js';
 import { QuickView } from './views/quick-view.js';
 import { ChengguView } from './views/chenggu-view.js';
+import { QimenView } from './views/qimen-view.js';
+import { FengshuiView } from './views/fengshui-view.js';
+import { MatchView } from './views/match-view.js';
 
 export { PANEL_ATTR };
 
@@ -28,6 +31,9 @@ export const VIEWS = [
 	['quick', '快占', '卜'],
 	['chenggu', '称骨', '秤'],
 	['tarot', '塔罗', '牌'],
+	['qimen', '奇门', '门'],
+	['fengshui', '风水', '宅'],
+	['match', '合婚', '合'],
 ];
 
 /** 初始状态。 */
@@ -40,6 +46,9 @@ export function initialState() {
 		almanac: { form: null, date: '', loading: false, error: null, result: null },
 		quick: { kind: 'xiaoliuren', question: '', num1: '', num2: '', num3: '', loading: false, error: null, result: null },
 		chenggu: { form: null, loading: false, error: null, result: null },
+		qimen: { form: null, loading: false, error: null, result: null },
+		fengshui: { form: null, fyForm: null, loading: false, fyLoading: false, error: null, fyError: null, result: null, fyResult: null },
+		match: { form: null, loading: false, error: null, result: null },
 	};
 }
 
@@ -255,6 +264,70 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 		return `/chenggu?${q.toString()}`;
 	};
 
+	/** 时辰下拉（子…亥）→ 0–23 钟面小时（子=23，与引擎 hourToZhi 同口径：(h+1)%24 整 2）。 */
+	const hourZhiToHour = (zhi) => {
+		const ZHIS = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+		const i = ZHIS.indexOf(zhi);
+		if (i < 0) throw new Error('时辰请从下拉里选一个（子丑寅卯…）——别手打，选错一个时辰盘就变。');
+		const h = i * 2 + 23;
+		return h >= 24 ? h - 24 : h;
+	};
+
+	const buildQimenQuery = (f) => {
+		const q = birthTriple(f);
+		if (!f.hourZhi) throw new Error('奇门必填时辰——缺时干整盘不可排，这是这一页唯一不能代填的输入。');
+		q.set('hourZhi', f.hourZhi);
+		return `/qimen?${q.toString()}`;
+	};
+
+	const buildFengshuiQuery = (f) => {
+		const q = birthTriple(f);
+		const gender = f.gender === 'female' ? 'female' : f.gender === 'male' ? 'male' : null;
+		if (!gender) throw new Error('性别必须选 男 或 女——男女命卦算法不同，缺省不猜。');
+		q.set('gender', gender);
+		return `/fengshui?${q.toString()}`;
+	};
+
+	const buildFengshuiFlyQuery = (f) => {
+		const fy = (f.fyYear ?? '').trim();
+		const q = new URLSearchParams();
+		if (fy !== '') {
+			const n = Number(fy);
+			if (!Number.isInteger(n) || n < 1900 || n > 2100) throw new Error('流年请填 1900–2100 的整数。');
+			q.set('fyYear', String(n));
+		}
+		return `/fengshui${q.toString() ? `?${q.toString()}` : ''}`;
+	};
+
+	const buildMatchQuery = (f) => {
+		const readSide = (prefix) => {
+			const toInt = (s) => (s === '' || s === undefined ? null : Number(s));
+			const year = toInt(f[`${prefix}_year`]);
+			const month = toInt(f[`${prefix}_month`]);
+			const day = toInt(f[`${prefix}_day`]);
+			if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+				throw new Error(`${prefix === 'a' ? '甲' : '乙'}方出生年月日必填（数字）——缺输入不猜。`);
+			}
+			const q = new URLSearchParams();
+			q.set(`${prefix}Year`, String(year));
+			q.set(`${prefix}Month`, String(month));
+			q.set(`${prefix}Day`, String(day));
+			if (f[`${prefix}_calendar`] === 'lunar') {
+				q.set(`${prefix}Calendar`, 'lunar');
+				if (f[`${prefix}_isLeapMonth`] === '1') q.set(`${prefix}IsLeapMonth`, '1');
+			}
+			if (f[`${prefix}_hourZhi`]) q.set(`${prefix}HourZhi`, f[`${prefix}_hourZhi`]);
+			if (f[`${prefix}_label`]?.trim()) q.set(`${prefix}Label`, f[`${prefix}_label`].trim());
+			return q;
+		};
+		const qa = readSide('a');
+		const qb = readSide('b');
+		const params = new URLSearchParams();
+		for (const [k, v] of qa) params.append(k, v);
+		for (const [k, v] of qb) params.append(k, v);
+		return `/match?${params.toString()}`;
+	};
+
 	const doBazi = (node) => {
 		const f = readInputs(node);
 		state.bazi = { ...state.bazi, form: f };
@@ -274,6 +347,50 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 		const f = readInputs(node);
 		state.chenggu = { ...state.chenggu, form: f };
 		return runView(node, 'chenggu', () => buildChengguQuery(f));
+	};
+
+	const doQimen = (node) => {
+		const f = readInputs(node);
+		state.qimen = { ...state.qimen, form: f };
+		return runView(node, 'qimen', () => buildQimenQuery(f));
+	};
+
+	const doFengshui = (node) => {
+		const f = readInputs(node);
+		state.fengshui = { ...state.fengshui, form: f };
+		const view = state.fengshui;
+		state.fengshui = { ...view, loading: true, error: null };
+		notify();
+		return apiFetch(buildFengshuiQuery(f)).then((result) => {
+			state.fengshui = { ...state.fengshui, loading: false, result };
+			notify();
+		}, (error) => {
+			const msg = String(error?.message ?? error);
+			state.fengshui = { ...state.fengshui, loading: false, error: msg };
+			notify();
+		});
+	};
+
+	const doFengshuiFly = (node) => {
+		const f = readInputs(node);
+		state.fengshui = { ...state.fengshui, fyForm: f };
+		const view = state.fengshui;
+		state.fengshui = { ...view, fyLoading: true, fyError: null };
+		notify();
+		return apiFetch(buildFengshuiFlyQuery(f)).then((result) => {
+			state.fengshui = { ...state.fengshui, fyLoading: false, fyResult: result };
+			notify();
+		}, (error) => {
+			const msg = String(error?.message ?? error);
+			state.fengshui = { ...state.fengshui, fyLoading: false, fyError: msg };
+			notify();
+		});
+	};
+
+	const doMatch = (node) => {
+		const f = readInputs(node);
+		state.match = { ...state.match, form: f };
+		return runView(node, 'match', () => buildMatchQuery(f));
 	};
 
 	/** 事件代理：容器上原生 click，按 data-action 分发。返回 disposer。 */
@@ -299,6 +416,10 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 					if (action === 'almanac-submit') { void doAlmanac(node); return; }
 					if (action === 'quick-cast') { void doQuick(node); return; }
 					if (action === 'chenggu-submit') { void doChenggu(node); return; }
+					if (action === 'qimen-submit') { void doQimen(node); return; }
+					if (action === 'fengshui-submit') { void doFengshui(node); return; }
+					if (action === 'fengshui-fly-submit') { void doFengshuiFly(node); return; }
+					if (action === 'match-submit') { void doMatch(node); return; }
 					if (action === 'tarot-draw') { void doTarot(node); return; }
 					if (action === 'card-flip') {
 						const ci = Number(target.getAttribute('data-ci'));
@@ -348,6 +469,9 @@ const SUBTITLES = {
 	quick: '快占 · 小六壬掐指 / 梅花报数',
 	chenggu: '袁天罡称骨 · 骨重四柱与批语',
 	tarot: '塔罗 · 每日一牌 / 三牌阵',
+	qimen: '奇门遁甲 · 时家转盘九宫星门',
+	fengshui: '八宅命卦 · 四吉四凶与流年飞星',
+	match: '八字合婚 · 属相十神与跨盘合会',
 };
 function panelSubtitle(view) {
 	return SUBTITLES[view] ?? SUBTITLES.trend;
@@ -414,6 +538,9 @@ export function XuanjiPanel() {
 			s.view === 'quick' ? h(QuickView, { state: s }) : null,
 			s.view === 'chenggu' ? h(ChengguView, { state: s }) : null,
 			s.view === 'tarot' ? h(TarotView, { state: s }) : null,
+			s.view === 'qimen' ? h(QimenView, { state: s }) : null,
+			s.view === 'fengshui' ? h(FengshuiView, { state: s }) : null,
+			s.view === 'match' ? h(MatchView, { state: s }) : null,
 		),
 	);
 }

@@ -79,8 +79,10 @@ test('1000 组伪随机八字：确定性（两次同输入同输出）+ 四柱�
     }
 });
 
-test('500 组伪随机奇门：确定性 + 局数 1–9 + 八宫星门齐全', () => {
+test('500 组伪随机奇门：确定性 + 局数 1–9 + 九宫仪奇齐全 + 转盘保序不变量', () => {
     const rand = mulberry32(20260102);
+    const RING = [1, 2, 3, 4, 6, 7, 8, 9];
+    const isRotationOf = (a, b) => b.some((_, s) => a.every((x, i) => x === b[(i + s) % b.length]));
     for (let i = 0; i < 500; i++) {
         const y = 2000 + Math.floor(rand() * 25);
         const m = 1 + Math.floor(rand() * 12);
@@ -92,8 +94,19 @@ test('500 组伪随机奇门：确定性 + 局数 1–9 + 八宫星门齐全', (
         assert.equal(a, b, `qimen ${i} 确定性`);
         const r = JSON.parse(a);
         assert.ok(r.meta.ju.ju >= 1 && r.meta.ju.ju <= 9, `qimen ${i} 局数越界`);
-        for (const p of [1, 2, 3, 4, 6, 7, 8, 9]) {
-            assert.ok(r.diPan[p] && r.tianPan[p], `qimen ${i} 宫 ${p} 缺星`);
+        assert.equal(r.diPan[r.meta.ju.ju], '戊', `qimen ${i} 戊应落局数宫`);
+        const diRing = RING.map((p) => r.diPanXing[p]);
+        const tianRing = RING.map((p) => r.tianPan[p]);
+        assert.ok(isRotationOf(tianRing, diRing), `qimen ${i} 天盘星环序必须保持地盘相对序`);
+        for (const p of [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+            assert.ok(r.diPan[p] && r.tianPan[p], `qimen ${i} 宫 ${p} 缺仪/星`);
+        }
+        if (r.meta.ganzhi.time[0] !== '甲') {
+            const ganPalace = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((p) => r.diPan[p] === r.meta.ganzhi.time[0]);
+            const eff = ganPalace === 5 ? 2 : ganPalace;
+            // 值符星取其本宫（禽寄坤二时轮点为芮宫）——取地盘本宫序，勿取旋转后天盘
+            const zhiFuStar = diRing[RING.indexOf(r.xun.palace === 5 ? 2 : r.xun.palace)];
+            assert.equal(r.tianPan[eff], zhiFuStar, `qimen ${i} 值符应落时干宫`);
         }
     }
 });

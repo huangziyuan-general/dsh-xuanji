@@ -140,7 +140,7 @@ test('控制器：switch-view / card-flip 事件代理改状态', () => {
     const { createXuanjiController, initialState } = loaded.exports.__internals;
     let renders = 0;
     const controller = createXuanjiController({ onChange: () => { renders += 1; } });
-    assert.deepEqual(Object.keys(controller.state), ['view', 'trend', 'tarot', 'bazi', 'almanac', 'quick', 'chenggu']);
+    assert.deepEqual(Object.keys(controller.state), ['view', 'trend', 'tarot', 'bazi', 'almanac', 'quick', 'chenggu', 'qimen', 'fengshui', 'match']);
     const node = new El('div');
     node.setAttribute('data-xuanji-panel', '1');
     const dispose = controller.attach(node);
