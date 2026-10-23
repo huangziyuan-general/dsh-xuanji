@@ -111,7 +111,8 @@ export const buildCss = (attr = PANEL_ATTR, id = STYLE_ID) => `
 
 /* ═══════════════════════════ ③ 导航 ═══════════════════════════ */
 .o-nav {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 3px;
+  /* 自适应列数：九页时排 3×3，十页（含六爻）时自动排成两行，不再留孤零零一个空位 */
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(58px, 1fr)); gap: 3px; padding: 3px;
   background: var(--o-surface);
   border: 1px solid var(--o-border);
   border-radius: 11px;

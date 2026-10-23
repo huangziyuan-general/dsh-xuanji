@@ -22,11 +22,12 @@ import { QimenView } from './views/qimen-view.js';
 import { FengshuiView } from './views/fengshui-view.js';
 import { MatchView } from './views/match-view.js';
 import { TrendView } from './views/trend-view.js';
+import { LiuyaoView, LiuyaoResult } from './views/liuyao-view.js';
 import { HOUR_OPTIONS, hourToZhi } from './views/ui.js';
 
 // 版本号：必须与 package.json 的 version 一致。
 // build-client.mjs 会把它与 package.json 对账，不一致直接构建失败（防发行漂移）。
-const PLUGIN_VERSION = '0.2.0';
+const PLUGIN_VERSION = '0.3.0';
 
 // 供面板头部徽标读取 —— 让视图层不必反向 import 入口（避免循环依赖）。
 window.__DSH_XUANJI_VERSION__ = PLUGIN_VERSION;
@@ -82,5 +83,6 @@ export const __internals = {
 	BaziView, PillarCard, WuxingBars, RelationBadges, ShenShaChips,
 	AlmanacView, QuickView, ChengguView, TrendView,
 	QimenView, FengshuiView, MatchView,
+	LiuyaoView, LiuyaoResult,
 	HOUR_OPTIONS, hourToZhi,
 };

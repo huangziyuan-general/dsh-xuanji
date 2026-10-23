@@ -4,11 +4,11 @@
 
 **DeepSeek Harness（DSH）玄学算命插件**
 
-八字 · 紫微斗数 · 梅花易数 · 黄历 · 称骨 · 星座 · 择日 · 风水 · 起名 · 合婚 · 生命数字 · 人生K线 · 塔罗 · 小六壬
+八字 · 紫微斗数 · 梅花易数 · 六爻纳甲 · 黄历 · 称骨 · 星座 · 择日 · 风水 · 起名 · 合婚 · 生命数字 · 人生K线 · 塔罗 · 小六壬
 
 *全部由本地确定性引擎计算——干支、星曜、卦象、骨重零模型推演，模型只负责解读。*
 
-[![release](https://img.shields.io/badge/release-v0.1.0-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
+[![release](https://img.shields.io/badge/release-v0.3.0-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![tests](https://img.shields.io/badge/tests-passing-green)]()
 
@@ -40,7 +40,7 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 - **缺输入先问不猜**：生辰 / 性别 / 时辰缺失时必须询问用户，绝不允许模型代填猜测值；
 - **断语出处标注**：每条断语区分「传统原文 / 传统通行口径 / 简化判定 / 白话自撰 / 自建字库」五级出处，工具未覆盖的如实说明，不臆断补全。
 
-## 工具面（15 个 `xuanji_*` 工具）
+## 工具面（16 个 `xuanji_*` 工具）
 
 | 工具 | 用途 | 关键输入 |
 |---|---|---|
@@ -59,12 +59,13 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 | `xuanji_match` | 八字合婚/合盘：属相关系（六合三合六冲六害相刑）+ 日主生克/天干五合 + 年命纳音 + 简化分档，冲刑害只讲「摩擦点」 | 双方出生年月日（时辰可选） |
 | `xuanji_numerology` | 生命数字（西方数字学）：生命路径数/生日数/态度数（11/22/33 主数保留）+ 白话数义，与八字紫微不同口径 | 公历出生年月日 |
 | `xuanji_qimen` | 奇门遁甲（时家转盘·拆补法简化口径）：阳遁/阴遁、节气局数、符头、时干支、值符、旬空、八宫地盘九星/天盘九星/八门落宫；时辰必填 | 日期 + 时辰（公历/农历） |
+| `xuanji_liuyao` | 六爻纳甲（京房）：摇卦成卦 → 八宫归属、世应、纳甲干支、六亲、六神、旺相休囚死、旬空、月破/日破/暗动、动爻与变卦（变爻干支 + 回头生克）；摇卦必须由用户完成，引擎不代摇 | 六个爻象数（6/7/8/9，自下而上）或六次三枚铜钱记录（背/字）+ 起卦日（缺省今天） |
 
 历法与紫微安星由开源确定性计算库承担（见 `package.json` 依赖清单），六十四卦表内置并经完整性与《观梅占》复原双重校验。
 
-## 右侧栏面板（九页）
+## 右侧栏面板（十页）
 
-插件自带右侧栏 client 面板（「玄机阁」tab），六个视图全部只读、零 token。数据来自 `/api/xuanji/*`（与 `xuanji_*` 工具同引擎，只读确定性计算）；缺输入一律 fail-fast 可见，绝不代填。
+插件自带右侧栏 client 面板（「玄机阁」tab），十个视图全部只读、零 token。数据来自 `/api/xuanji/*`（与 `xuanji_*` 工具同引擎，只读确定性计算）；缺输入一律 fail-fast 可见，绝不代填。
 
 <div align="center">
 
@@ -75,6 +76,8 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 | <img src="assets/panel-trend.png" width="380" alt="人生K线：逐年蜡烛图 + 均线 + 峰谷标注 + 大运分段"> | <img src="assets/panel-chenggu.png" width="380" alt="称骨面板：总骨重 + 四柱明细 + 档位批语"> |
 | **快占** | **塔罗** |
 | <img src="assets/panel-quick.png" width="380" alt="快占：小六壬报三数掐指落宫"> | <img src="assets/panel-tarot.png" width="380" alt="塔罗：三牌阵翻牌 + 牌意解读"> |
+| **六爻** | |
+| <img src="assets/panel-liuyao.png" width="380" alt="六爻：逐爻摇卦 + 本卦变卦 + 纳甲六亲六神排盘"> | |
 
 </div>
 
@@ -86,7 +89,8 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 - **塔罗**：每日一牌 / 三牌阵（所问何事输入框常驻），CSS 3D 翻牌动画；
 - **奇门**：日期 + 时辰下拉 → 阳遁/阴遁局数、值符、旬空 + 九宫格（地_天_门，吉门着色），时家转盘确定性计算；
 - **风水**：八宅命卦（东四/西四 + 四吉四凶方位）+ 流年九宫飞星（年家紫白，fyYear 单独可查，标准紫白序列）；
-- **合婚**：双方生辰（年月日 + 时辰下拉 + 历法 + 称谓）→ 属相关系 + 双向十神 + 跨盘合会 + 分档（冲刑害只讲「摩擦点」）。
+- **合婚**：双方生辰（年月日 + 时辰下拉 + 历法 + 称谓）→ 属相关系 + 双向十神 + 跨盘合会 + 分档（冲刑害只讲「摩擦点」）；
+- **六爻**：逐爻点击摇卦（三枚铜钱正反由用户点击产生，与传统掷币同义；引擎不代摇、不预填）→ 本卦/变卦、八宫世应、逐爻纳甲六亲六神、旺衰旬空月破、动爻回头生克、六亲主事速查。
 
 面板深浅主题零探测自适应（`color-mix(currentColor)` 体系），宿主切色无需配置。源码在 `src/client/`，改动后需 `npm run build` 重新产出 `lib/client.js`（dsh 只加载构建产物）。
 
@@ -94,7 +98,7 @@ REST 面带三道防线（本机 Host/Origin 白名单 + fence header），只�
 
 ## 日期输入：公历 / 农历（含闰月）
 
-14 个工具里凡吃日期的入口**一律支持 `calendar=solar|lunar`**（缺省 solar），农历侧再带 `isLeapMonth`：
+16 个工具里凡吃日期的入口**一律支持 `calendar=solar|lunar`**（缺省 solar），农历侧再带 `isLeapMonth`：
 
 - 面板（八字 / K线 / 称骨 / 黄历）与工具面同口径：面板上有「公历 / 农历」切换，选农历才出现「闰月」勾选；
 - 农历年份以**正月初一**为界，不是公历年——农历 1990 年腊月落在公历 1991 年属正常，结果里会写明；

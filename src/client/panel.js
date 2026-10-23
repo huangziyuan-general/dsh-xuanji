@@ -1,4 +1,4 @@
-// src/client/panel.js — 右侧栏「玄机阁」面板外壳：品牌头 + 九页导航 + 视图容器。
+// src/client/panel.js — 右侧栏「玄机阁」面板外壳：品牌头 + 十页导航 + 视图容器。
 //
 // 状态机与业务校验仍放在 createXuanjiController（headless 可直测，不必渲染 React）；
 // 这个文件负责「看起来像正经产品」的那一层：导航奏GRAPH、疑问 forms、交流与析木 HEADER。
@@ -17,6 +17,7 @@ import { ChengguView } from './views/chenggu-view.js';
 import { QimenView } from './views/qimen-view.js';
 import { FengshuiView } from './views/fengshui-view.js';
 import { MatchView } from './views/match-view.js';
+import { LiuyaoView } from './views/liuyao-view.js';
 
 export { PANEL_ATTR };
 
@@ -34,6 +35,7 @@ export const VIEWS = [
 	['qimen', '奇门', '门'],
 	['fengshui', '风水', '宅'],
 	['match', '合婚', '合'],
+	['liuyao', '六爻', '爻'],
 ];
 
 /** 初始状态。 */
@@ -49,6 +51,8 @@ export function initialState() {
 		qimen: { form: null, loading: false, error: null, result: null },
 		fengshui: { form: null, fyForm: null, loading: false, fyLoading: false, error: null, fyError: null, result: null, fyResult: null },
 		match: { form: null, loading: false, error: null, result: null },
+		// 六爻：tosses 是六次摇币记录（每次三枚，true=背=阳面），只在用户点击时产生。
+		liuyao: { question: '', tosses: [], loading: false, error: null, result: null },
 	};
 }
 
@@ -393,6 +397,45 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 		return runView(node, 'match', () => buildMatchQuery(f));
 	};
 
+	/**
+	 * 摇一爻：三枚铜钱的正反由用户这次点击产生（与传统掷币同义）。
+	 * 只有这一步是随机的——成卦之后的卦象、纳甲、六亲、六神、旺衰仍是确定性计算。
+	 * 引擎从不代摇：面板不预填、不补爻，少一爻就起不了卦。
+	 */
+	const doLiuyaoToss = () => {
+		const tosses = state.liuyao.tosses ?? [];
+		if (tosses.length >= 6) return;
+		const toss = Array.from({ length: 3 }, () => Math.random() < 0.5);
+		state.liuyao = { ...state.liuyao, tosses: [...tosses, toss], error: null };
+		notify();
+	};
+
+	/** 重摇：清空六爻与结果，保留已写的问题。 */
+	const doLiuyaoReset = () => {
+		state.liuyao = { ...state.liuyao, tosses: [], loading: false, error: null, result: null };
+		notify();
+	};
+
+	/** 六爻查询串：把六次摇币压平成 18 个「背/字」交给引擎。 */
+	const buildLiuyaoQuery = () => {
+		const tosses = state.liuyao.tosses ?? [];
+		if (tosses.length !== 6) {
+			throw new Error(`摇卦要正好六爻（当前 ${tosses.length} 爻）——先摇满六次再起卦，少一爻不成卦，也不替你补。`);
+		}
+		const coins = tosses.flat().map((isBack) => (isBack ? '背' : '字')).join('');
+		const q = new URLSearchParams({ mode: 'coins', coins });
+		const question = (state.liuyao.question ?? '').trim();
+		if (question) q.set('question', question);
+		return `/liuyao?${q.toString()}`;
+	};
+
+	const doLiuyaoSubmit = (node) => {
+		const f = readInputs(node);
+		// 问题写在 textarea 里（非受控），提交时读一次进 state，查询串与重渲染都用它。
+		state.liuyao = { ...state.liuyao, question: f.question ?? '' };
+		return runView(node, 'liuyao', buildLiuyaoQuery);
+	};
+
 	/** 事件代理：容器上原生 click，按 data-action 分发。返回 disposer。 */
 	const attach = (node) => {
 		const onClick = (event) => {
@@ -420,6 +463,9 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 					if (action === 'fengshui-submit') { void doFengshui(node); return; }
 					if (action === 'fengshui-fly-submit') { void doFengshuiFly(node); return; }
 					if (action === 'match-submit') { void doMatch(node); return; }
+					if (action === 'liuyao-toss') { doLiuyaoToss(); return; }
+					if (action === 'liuyao-reset') { doLiuyaoReset(); return; }
+					if (action === 'liuyao-submit') { void doLiuyaoSubmit(node); return; }
 					if (action === 'tarot-draw') { void doTarot(node); return; }
 					if (action === 'card-flip') {
 						const ci = Number(target.getAttribute('data-ci'));
@@ -472,6 +518,7 @@ const SUBTITLES = {
 	qimen: '奇门遁甲 · 时家转盘九宫星门',
 	fengshui: '八宅命卦 · 四吉四凶与流年飞星',
 	match: '八字合婚 · 属相十神与跨盘合会',
+	liuyao: '六爻纳甲 · 摇卦成卦与动爻变卦',
 };
 function panelSubtitle(view) {
 	return SUBTITLES[view] ?? SUBTITLES.trend;
@@ -541,6 +588,7 @@ export function XuanjiPanel() {
 			s.view === 'qimen' ? h(QimenView, { state: s }) : null,
 			s.view === 'fengshui' ? h(FengshuiView, { state: s }) : null,
 			s.view === 'match' ? h(MatchView, { state: s }) : null,
+			s.view === 'liuyao' ? h(LiuyaoView, { state: s }) : null,
 		),
 	);
 }

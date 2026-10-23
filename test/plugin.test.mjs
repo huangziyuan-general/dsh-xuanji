@@ -39,12 +39,13 @@ test('插件名与宿主契约：export name = dsh-xuanji', () => {
     assert.equal(PLUGIN_NAME, 'dsh-xuanji');
 });
 
-test('boot：注册恰好 15 个 xuanji_* 工具，名字与文档一致', () => {
+test('boot：注册恰好 16 个 xuanji_* 工具，名字与文档一致', () => {
     const { registered } = boot();
     assert.deepEqual(
         registered.map((t) => t.name).sort(),
         [
             'xuanji_almanac', 'xuanji_bazi', 'xuanji_chenggu', 'xuanji_fengshui',
+            'xuanji_liuyao',
             'xuanji_match', 'xuanji_meihua', 'xuanji_name', 'xuanji_numerology',
             'xuanji_qimen',
             'xuanji_star', 'xuanji_tarot', 'xuanji_trend',

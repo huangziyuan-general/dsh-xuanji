@@ -12,3 +12,9 @@ probe-*.mjs
 # 系统与日志
 .DS_Store
 *.log
+
+# 截图 harness 与临时产物
+test/tmp/
+
+# 截图 harness 与临时产物
+test/tmp/
