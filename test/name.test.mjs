@@ -3,6 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { assessName, generateNames, CHAR_WUXING, CANDIDATE_CHARS } from '../lib/engine/name.js';
+import { GAN, GAN_WUXING, ZHI, ZHI_WUXING } from '../lib/engine/tables.js';
 
 test('字库：约 240 字全有五行值，无占位垃圾键', () => {
     const entries = Object.entries(CHAR_WUXING);
@@ -131,4 +132,42 @@ test('工具面回归：parameters 必须声明 action（参数白名单严格�
     assert.equal(g.candidates.length, 10);
     const a = await tool.execute({ surname: '李', givenName: '沐宸' });
     assert.equal(a.meta.givenName, '沐宸');
+});
+
+// ── P2-6 回归：字库与自家 tables.js 不得互相打脸 ────────────────────────────
+// 天干/地支字的五行是**可机械判定**的事实（甲必属木），而旧字库把「甲」按田字格象形记作土，
+// 于是同一插件里 xuanji_bazi 说甲=木、xuanji_name 说甲=土。
+// 笔数量理类（昌/宁/富/宏）各字典本就不一，不在本用例约束范围内，见 name.js 表头说明。
+test('字库五行与 tables.js 对天干/地支字零冲突（单一真相守卫）', () => {
+    const conflicts = [];
+    for (const g of GAN) {
+        const expect = GAN_WUXING[GAN.indexOf(g)];
+        if (CHAR_WUXING[g] && CHAR_WUXING[g] !== expect) conflicts.push(`天干「${g}」字库=${CHAR_WUXING[g]} 应为${expect}`);
+    }
+    for (const z of ZHI) {
+        const expect = ZHI_WUXING[ZHI.indexOf(z)];
+        if (CHAR_WUXING[z] && CHAR_WUXING[z] !== expect) conflicts.push(`地支「${z}」字库=${CHAR_WUXING[z]} 应为${expect}`);
+    }
+    assert.deepEqual(conflicts, [], conflicts.join('；'));
+    assert.equal(CHAR_WUXING['甲'], '木');
+});
+
+test('字库未收录的字如实标注，不静默按 0 分算成「平和」（汇总断语也要一致）', () => {
+    const r = assessName({ surname: '鑫', givenName: '龘䶮', birth: { year: 1990, month: 8, day: 16, hour: 14, gender: 'male' } });
+    const unknown = r.chars.filter((c) => c.status === '未收录');
+    assert.ok(unknown.length >= 2, `应全部标未收录，实际 ${JSON.stringify(r.chars.map((c) => c.status))}`);
+    // 断言实质而不是关键词：全未收录 = 「评不了」，绝不能被报成「评过且中和」
+    assert.equal(r.verdict.verdict, '未评', `全部字未收录却被判成「${r.verdict.verdict}」：${r.verdict.text}`);
+    assert.ok(!/平和|不补不冲/.test(r.verdict.text), `断语仍自称平和：${r.verdict.text}`);
+    assert.match(r.verdict.text, /无法判断|未采集到数据/);
+});
+
+test('部分未收录：计分只算已收录字，且断语要点明哪些字没参与', () => {
+    const r = assessName({ surname: '李', givenName: '沐龘', birth: { year: 1990, month: 8, day: 16, hour: 14, gender: 'male' } });
+    const known = r.chars.filter((c) => c.status === '已收录').length;
+    const unknown = r.chars.filter((c) => c.status === '未收录').map((c) => c.char);
+    assert.ok(known >= 1 && unknown.length >= 1, '用例前提：一字收录一字未收录');
+    if (r.verdict.verdict === '平') {
+        assert.match(r.verdict.text, /未参与计分/, `「平」档必须点明有字未参与计分：${r.verdict.text}`);
+    }
 });

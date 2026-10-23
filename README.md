@@ -96,7 +96,7 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 
 面板深浅主题零探测自适应（`color-mix(currentColor)` 体系），宿主切色无需配置。源码在 `src/client/`，改动后需 `npm run build` 重新产出 `lib/client.js`（dsh 只加载构建产物）。
 
-REST 面带三道防线（本机 Host/Origin 白名单 + fence header），只读、无文件写入。
+REST 面带三道防线（本机 Host/Origin 白名单 + fence header），只读、无文件写入。**这套防线只对浏览器威胁模型成立**：它挡跨站页面调用（fence 用的自定义头会触发 CORS 预检，服务端不回 `Access-Control-Allow-*` 就发不出请求），但 fence 值是常量而非会换的会话令牌，所以**同机其它进程加一个固定头即可通读全部端点**。要把威胁模型扩到「防同机进程」，需要每次启动生成随机会话令牌——目前未做，故此处如实限定，不称"绝对隔离"。
 
 ## 日期输入：公历 / 农历（含闰月）
 

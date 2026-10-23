@@ -81,7 +81,9 @@ test('1000 组伪随机八字：确定性（两次同输入同输出）+ 四柱�
 
 test('500 组伪随机奇门：确定性 + 局数 1–9 + 九宫仪奇齐全 + 转盘保序不变量', () => {
     const rand = mulberry32(20260102);
-    const RING = [1, 2, 3, 4, 6, 7, 8, 9];
+    // 后天八卦方位环（不是洛书数字环）。旧版在这里抄了实现的数字环，
+    // 于是「转盘转错」也满足同构 —— 参见 test/qimen.test.mjs 的 P1-1 回归组。
+    const RING = [1, 8, 3, 4, 9, 2, 7, 6];
     const isRotationOf = (a, b) => b.some((_, s) => a.every((x, i) => x === b[(i + s) % b.length]));
     for (let i = 0; i < 500; i++) {
         const y = 2000 + Math.floor(rand() * 25);

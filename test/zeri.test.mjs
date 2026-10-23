@@ -48,3 +48,39 @@ test('非法属相 fail-fast', () => {
 test('确定性：同输入两次结果一致', () => {
     assert.deepEqual(computeZeri({ task: '嫁娶', startDate: '2026-11-01', days: 10 }), computeZeri({ task: '嫁娶', startDate: '2026-11-01', days: 10 }));
 });
+
+// ── P2-5 回归：冲当事人属相必须真排除，且结论文案不得与命中理由矛盾 ──────────
+test('冲煞排除：给了属小时后，冲该属相的日子绝不进 best/usable，且被标 excluded', () => {
+    const r = computeZeri({ task: '嫁娶', startDate: '2026-02-01', days: 30, shengXiao: '鼠' });
+    const chongRat = r.days.filter((d) => d.chong === '鼠');
+    assert.ok(chongRat.length > 0, '样本里必须有冲鼠的日子，否则用例失去意义');
+    for (const d of chongRat) {
+        assert.equal(d.excluded, true, `${d.date} 冲鼠应被排除`);
+        assert.equal(d.verdict, '回避', `${d.date} 冲事主属相不该是「${d.verdict}」`);
+        assert.ok(!r.best.includes(d.date) && !(r.usable ?? []).includes(d.date), `${d.date} 混进了可用/推荐名单`);
+    }
+    assert.equal(r.excludedCount, chongRat.length);
+});
+
+test('冲煞排除：结论文案不得在冲属相当天说「未见冲克」（旧版实测说谎）', () => {
+    const r = computeZeri({ task: '嫁娶', startDate: '2026-02-01', days: 30, shengXiao: '鼠' });
+    const lying = r.days.filter((d) => d.chong === '鼠' && /无明显冲克|未见冲克/.test(d.verdictText));
+    assert.deepEqual(lying.map((d) => `${d.date}: ${d.verdictText}`), [], '冲事主的日子仍给出「无冲克」结论');
+});
+
+test('回避明细：理由为空的破日/危日不得渲染成「日期（）」空括号', () => {
+    for (const [task, from, n] of [['开业', '2026-03-01', 40], ['入宅', '2026-04-01', 40], ['动土', '2026-05-01', 40]]) {
+        const r = computeZeri({ task, startDate: from, days: n });
+        for (const row of r.avoid) {
+            const inner = /\(([^)]*)\)|（([^）]*)）/.exec(row);
+            const body = (inner?.[1] ?? inner?.[2] ?? '').trim();
+            assert.notEqual(body, '', `空括号明细：${row}`);
+        }
+    }
+});
+
+test('未给属小时：ruleNote 如实说明没做冲属相排除，不假装排过', () => {
+    const r = computeZeri({ task: '嫁娶', startDate: '2026-02-01', days: 10 });
+    assert.match(r.meta.ruleNote, /未给当事人属相，故未做冲属相排除/);
+    assert.ok(r.days.every((d) => !d.excluded), '未给属相不该有任何硬排除');
+});

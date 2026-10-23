@@ -1,6 +1,6 @@
 {
   "name": "dsh-xuanji",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "玄机阁（dsh-xuanji）：DSH 玄学算命插件。八字、紫微斗数、梅花易数、六爻纳甲、黄历、称骨、星座、择日、风水（八宅+门主灶）、起名（评估+候选生成）、人生K线、塔罗、小六壬——全部由本地确定性引擎计算（干支/星曜/卦象/骨重零模型推演），模型只负责解读；四层输出纪律，缺输入先问不猜。内置夏令时与真太阳时校正，附带右侧栏面板（人生K线 SVG 图 + 塔罗翻牌动画，只读 REST 数据面）。Fortune-telling plugin for DeepSeek Harness (DSH) with fully deterministic local engines.",
   "keywords": [
     "deepseek",

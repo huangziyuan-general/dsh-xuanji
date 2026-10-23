@@ -241,3 +241,44 @@ test('P 奇门 REST：缺 hour 必须 400 fail-fast（不许默认午时）', as
         assert.match(r.body.error.message, /hour|时辰/);
     } finally { close(); }
 });
+
+// ── REST 输入边界（AUDIT REST 面）──────────────────────────────────────────
+test('R 输入边界：fyYear / fortuneYear 越界返回 400，不再一路穿到引擎', async () => {
+    const { call, close } = await startQimenPanel();
+    try {
+        for (const q of ['fyYear=99999', 'fyYear=-99999', 'fyYear=1800']) {
+            const r = await call(`/api/xuanji/fengshui?${q}`);
+            assert.equal(r.status, 400, `${q} 应被拒（旧版返回 200）`);
+            assert.equal(r.body.ok, false);
+            assert.match(r.body.error.message, /须在 1900–2100/);
+        }
+        const ok = await call('/api/xuanji/fengshui?fyYear=2035');
+        assert.equal(ok.status, 200, '合法流年仍要能查');
+        assert.equal(ok.body.value.yearlyFlying.center, 1, '2035 应为一白入中');
+    } finally { close(); }
+});
+
+test('R 输入边界：字符串 query 超长被拒，响应体不被输入线性放大', async () => {
+    const { call, close } = await startQimenPanel();
+    try {
+        const big = 'A'.repeat(5000);
+        const base = '/api/xuanji/match?aYear=1990&aMonth=8&aDay=16&bYear=1992&bMonth=5&bDay=20';
+        for (const path of [`/api/xuanji/tarot?mode=single&question=${big}`, `${base}&aLabel=${big}`]) {
+            const r = await call(path);
+            assert.equal(r.status, 400, `${path.slice(0, 30)}… 超长输入应拒，实得 ${r.status}`);
+            assert.match(r.body.error.message, /过长/);
+            assert.ok(JSON.stringify(r.body).length < 2000, '响应体应远小于输入长度');
+        }
+    } finally { close(); }
+});
+
+test('R 错误分类：400 只回面向用户的消息，不带栈与源码路径', async () => {
+    const { call, close } = await startQimenPanel();
+    try {
+        const bad = await call('/api/xuanji/bazi?year=abc&month=8&day=16&gender=male');
+        assert.equal(bad.status, 400);
+        const wire = JSON.stringify(bad.body);
+        assert.ok(!/at \S+\.js:\d+/.test(wire), `响应疑似带栈：${wire.slice(0, 300)}`);
+        assert.ok(!/node_modules/.test(wire), '响应不应泄露依赖路径');
+    } finally { close(); }
+});

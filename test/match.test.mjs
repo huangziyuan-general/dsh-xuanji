@@ -65,3 +65,28 @@ test('时辰可选：不给时辰时有 note，给了不炸', () => {
     const withHour = computeMatch({ a: { year: 1990, month: 8, day: 16, hour: 14 }, b: { year: 1993, month: 10, day: 2, hour: 9 } });
     assert.ok(withHour.relations.length > 0);
 });
+
+// ── P2-7 回归：合婚双方称谓相同时，meta 以称谓为键会让一方被静默覆盖 ──────────
+test('同称谓合婚：双方都填「男方」时两栏数据都必须还在，并说明自动加了序位', () => {
+    const r = computeMatch({
+        a: { year: 1990, month: 8, day: 16, hour: 14, label: '男方' },
+        b: { year: 1992, month: 5, day: 20, hour: 10, label: '男方' },
+    });
+    const vals = Object.values(r.meta).filter((v) => typeof v === 'string' && /日柱/.test(v));
+    assert.equal(vals.length, 2, `旧实现只剩一栏（${vals.length}）：${JSON.stringify(r.meta)}`);
+    assert.ok(r.meta.labelNote, '应给出称谓冲突的自动改名说明');
+    assert.match(r.meta.labelNote, /同为「男方」/);
+    assert.ok(Object.keys(r.meta).some((k) => k.includes('（甲）')));
+    assert.ok(Object.keys(r.meta).some((k) => k.includes('（乙）')));
+    // 关系文案里的称谓也不能再出现两个同名分不清的情况
+    for (const rel of r.relations) assert.ok(!/^男方日主.*对男方日主/.test(rel.text), `文案称谓歧义：${rel.text}`);
+});
+
+test('称谓不同：不产生多余的 labelNote，称谓原样保留', () => {
+    const r = computeMatch({
+        a: { year: 1990, month: 8, day: 16, label: '男方' },
+        b: { year: 1992, month: 5, day: 20, label: '女方' },
+    });
+    assert.equal(r.meta.labelNote, undefined);
+    assert.ok('男方' in r.meta && '女方' in r.meta);
+});

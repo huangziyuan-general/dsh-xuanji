@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+import lunarPkg from 'lunar-javascript';
 import { computeShenShaStars } from '../lib/engine/shensha.js';
 import { computeBazi } from '../lib/engine/bazi.js';
 
@@ -58,14 +59,45 @@ test('起法覆盖：阳干羊刃、文昌、红鸾天喜、月德、将星、�
     assert.ok(stars3['灾煞'].hits.some((h) => h.char === '午'));
 });
 
-test('端到端：computeBazi 返回 shenSha.stars（数组、带 type/hits/rule）与日柱旬空', () => {
+test('端到端：computeBazi 返回 shenSha.stars（数组、带 type/soft/hits/rule）与日柱旬空', () => {
     const r = computeBazi({ year: 1990, month: 8, day: 16, hour: 14, gender: 'male' });
     assert.ok(Array.isArray(r.shenSha.stars) && r.shenSha.stars.length > 0);
     for (const s of r.shenSha.stars) {
-        assert.ok(['吉星', '中性', '凶煞'].includes(s.type));
+        assert.ok(['吉星', '中性', '宜留意'].includes(s.type), `type 不该再出现恐吓式标签：${s.type}`);
         assert.ok(s.hits.length > 0 && s.rule.length > 4);
+        // P2-4：每一条星煞都必须自带中性描述（soft），工具层直接渲染它——
+        // 旧版 bazi-tool.js:105 声称「凶煞用中性表述转译」却原样打印（凶煞）二字，纪律第 6 条落空。
+        assert.ok(typeof s.soft === 'string' && s.soft.length > 6, `${s.name} 缺中性描述 soft`);
     }
     assert.equal(r.shenSha.xunKong, '寅卯', '癸丑属甲辰旬，寅卯空');
+});
+
+test('P2-4 全表自检：任何星煞的 type/soft 都不得含「凶」「灾」「克」「刑」等恐吓字面', () => {
+    const { Solar } = lunarPkg;
+    const seen = new Set();
+    const bad = [];
+    for (let i = 0; i < 400; i++) {
+        const s = Solar.fromYmd(1960, 1, 1).nextDay(i * 41);
+        const b = computeBazi({ year: s.getYear(), month: s.getMonth(), day: s.getDay(), hour: 10, gender: 'male' });
+        for (const x of b.shenSha.stars) {
+            seen.add(x.name);
+            const face = `${x.type} ${x.soft}`;
+            if (/凶|灾|克|刑|必/.test(face)) bad.push(`${x.name}: ${face}`);
+        }
+    }
+    assert.ok(seen.size >= 10, `样本太窄，只见到 ${[...seen].join(',')} 种星煞，用例失去意义`);
+    assert.deepEqual([...new Set(bad)], [], `仍有恐吓式措辞：\n${[...new Set(bad)].join('\n')}`);
+});
+
+test('P2-4 工具渲染层：xuanji_bazi 的 render 文本里不出现「（凶煞）」，而是中性描述', async () => {
+    const { defineBaziTool } = await import('../lib/tools/bazi-tool.js');
+    const t = defineBaziTool();
+    const v = await t.execute({ year: 1990, month: 8, day: 16, hour: 14, gender: 'male' }, {});
+    const render = t.output?.render ?? t.render;
+    const text = render({}, v)[0].text;
+    assert.ok(!/（凶煞）/.test(text), `render 仍在原样打印凶煞标签：\n${text.slice(0, 400)}`);
+    assert.ok(/羊刃|桃花|劫煞|灾煞|亡神|孤辰|寡宿/.test(text) ? /宜留意|倾向|主./.test(text) : true,
+        '带传统宜留意类星煞时，应同时给出中性描述');
 });
 
 test('无神煞落柱的盘返回空数组不报错', () => {
@@ -103,6 +135,6 @@ test('亡神表全覆盖：四局禄位（寅午戌见巳 / 巳酉丑见申 / �
         const wang = stars.find((s) => s.name === '亡神');
         assert.ok(wang, `年支${pillars.year.zhi}应查出亡神`);
         assert.ok(wang.hits.some((h) => h.char === target), `亡神应落${target}`);
-        assert.equal(wang.type, '凶煞');
+        assert.equal(wang.type, '宜留意');
     }
 });

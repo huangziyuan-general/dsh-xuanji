@@ -159,7 +159,7 @@ export function RelationBadges({ relations }) {
 
 /** 神煞 chips：吉星/凶煞/中性分色，只列名与落柱，不做吉凶渲染。 */
 export function ShenShaChips({ stars }) {
-	const typeTone = { 吉星: 'gold', 中性: null, 凶煞: null };
+	const typeTone = { 吉星: 'gold', 中性: null, 宜留意: null };
 	return h(Badges, { children: stars.map((s, i) => h(Badge, {
 		key: i,
 		tone: typeTone[s.type] ?? null,

@@ -2,7 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+import lunarPkg from 'lunar-javascript';
 import { computeTrend } from '../lib/engine/trend.js';
+import { computeBazi } from '../lib/engine/bazi.js';
 
 const CASE = { year: 1990, month: 8, day: 16, hour: 14, gender: 'male', calendar: 'solar' };
 
@@ -71,4 +73,50 @@ test('时间管线：applyDST/city 真实生效（DST 减一小时 + 真太阳�
     // 关闭 DST 后无夏令时 note（无口径说明时 notes 整个省略）
     const t3 = computeTrend({ ...base, applyDST: false });
     assert.ok(!(t3.meta.notes ?? []).some((n) => n.includes('夏令时')));
+});
+
+// ── 人生K线：旺衰边界盘不再冒充可信趋势 ────────────────────────────────────
+// 判据只看一个整数计数，计数 ±1 即换档，而 trend 的三张十神计分表符号相反，
+// 于是「差一天出生」的两个人可以拿到几乎反相的 40 年曲线（实测相关 −0.33）。
+// 修不了判据本身（那是产品口径决定），但至少要让边界盘自己承认不确定。
+test('边界盘：strength.boundary 为真时不出 best/worst 结论，且 disclaimer 说明', () => {
+    const { Solar } = lunarPkg;
+    let found = 0;
+    for (let i = 0; i < 400 && found < 3; i++) {
+        const s = Solar.fromYmd(2000, 3, 1).nextDay(i);
+        const t = computeTrend({ year: s.getYear(), month: s.getMonth(), day: s.getDay(), hour: 10, gender: 'male', toAge: 40 });
+        if (!t.meta.strength.boundary) continue;
+        found++;
+        assert.deepEqual(t.highlights.best, [], `边界盘仍给了顺位年份：${JSON.stringify(t.highlights)}`);
+        assert.deepEqual(t.highlights.worst, []);
+        assert.ok(t.highlights.suppressed, '应说明为何抑制结论');
+        assert.ok(t.meta.boundaryNote, 'meta 里要有边界口径说明');
+        assert.match(t.disclaimer, /边界/);
+        // 曲线本身仍然算得出来（面板要画图），只是不下结论
+        assert.equal(t.points.length, 40);
+    }
+    assert.ok(found > 0, '400 个盘里一个边界盘都没有 —— 用例失去意义，该查判据而不是改断言');
+});
+
+test('非边界盘：正常给 best/worst（别把能给的也一起掐掉）', () => {
+    const { Solar } = lunarPkg;
+    let found = 0;
+    for (let i = 0; i < 400 && found < 2; i++) {
+        const s = Solar.fromYmd(1990, 6, 1).nextDay(i);
+        const t = computeTrend({ year: s.getYear(), month: s.getMonth(), day: s.getDay(), hour: 10, gender: 'male', toAge: 40 });
+        if (t.meta.strength.boundary) continue;
+        found++;
+        assert.equal(t.highlights.best.length, 3);
+        assert.equal(t.highlights.worst.length, 3);
+        assert.equal(t.meta.boundaryNote, undefined);
+    }
+    assert.ok(found > 0, '找不到非边界盘，判据可能过窄');
+});
+
+test('边界判定自洽：计数 ±1 换档 <=> boundary 为真', () => {
+    const b = computeBazi({ year: 1990, month: 8, day: 16, hour: 14, gender: 'male' });
+    const { score, deLing, state, boundary } = b.strength;
+    const cls = (s) => (s >= 4 && deLing ? '偏强' : (s <= 2 || (!deLing && s <= 3)) ? '偏弱' : '中和');
+    assert.equal(cls(score), state, '内部重算应与引擎状态一致');
+    assert.equal(boundary, cls(score + 1) !== state || cls(score - 1) !== state);
 });

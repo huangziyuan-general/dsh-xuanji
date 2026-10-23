@@ -112,10 +112,13 @@ test('刑冲合会：六合/六冲/六害/相刑按传统口径检出并落柱�
 });
 
 test('刑冲合会：三合局齐全时报告三合、不重复报半合（申子辰全见）', () => {
-    const r = computeBazi({ year: 1992, month: 12, day: 2, hour: 2, gender: 'male' }); // 目标凑出申/子/辰
+    // 1980-04-09 巳时 → 申 辰 子 巳（三支各一次，无重复），是干净的三合正例。
+    // 旧断言写成 `if (sanhe.length > 0)` 的条件式——三合整个漏报时它照样绿。
+    const r = computeBazi({ year: 1980, month: 4, day: 9, hour: 10, gender: 'male' });
+    assert.equal(Object.values(r.pillars).map((p) => p.zhi).join(''), '申辰子巳', '盘面前提：申子辰齐全且无重复支');
     const sanhe = r.zhiRelations.filter((x) => x.type === '三合');
-    assert.equal(sanhe.length, 1, '申子辰全见必须报且只报一条三合（旧断言是条件式的，三合漏报也照样绿）');
-    assert.match(sanhe[0].text, /申子辰三合水局/);
+    assert.equal(sanhe.length, 1, '申子辰全见必须报且只报一条三合');
+    assert.equal(sanhe[0].text, '年、月、日支成申子辰三合水局');
     const banhe = r.zhiRelations.filter((x) => x.type === '半合');
     assert.equal(banhe.filter((x) => x.text.includes('水')).length, 0, '三合已报的组不再报该组半合');
 });
@@ -162,13 +165,17 @@ test('三刑判据：子卯相刑只报一条，重复的子不产生第二行�
     assert.match(xing[0].text, /无礼之刑/);
 });
 
-test('成对关系落柱：重复支合并到同一行的柱位列表里（午未合而午出现两次）', () => {
-    const r = computeBazi({ year: 1990, month: 8, day: 16, hour: 12, gender: 'male' });
+test('成对关系落柱：重复支合并进同一行的柱位列表，不另起一行（亥子卯子）', () => {
+    const r = computeBazi({ year: 1960, month: 1, day: 3, hour: 23, gender: 'male' });
+    const xing = r.zhiRelations.filter((x) => x.type === '相刑');
+    assert.equal(xing.length, 1);
+    // 子落在月、时两柱 —— 必须合并进同一个标签里，而不是把「子卯」报两遍
+    assert.match(xing[0].text, /月、时支子|时、月支子/, `重复支的落柱要合并：${xing[0].text}`);
     for (const rel of r.zhiRelations) {
-        const heads = [...rel.text.matchAll(/([年月日时]+)支([子丑寅卯辰巳午未申酉戌亥])/g)];
+        const heads = [...rel.text.matchAll(/([年月日时]、?)+支([子丑寅卯辰巳午未申酉戌亥])/g)];
         for (const m of heads) {
-            assert.ok(m[1].length <= 4, `${rel.type}：柱位标签应为去重后的合并列表`);
-            assert.equal(new Set(m[1].split('')).size, m[1].length, `${rel.type}：柱位标签不得重复「${m[1]}」`);
+            const cols = m[1].replace(/、/g, '');
+            assert.equal(new Set(cols).size, cols.length, `${rel.type}：柱位标签不得重复「${m[0]}」`);
         }
     }
 });
