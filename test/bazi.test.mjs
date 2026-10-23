@@ -114,9 +114,62 @@ test('刑冲合会：六合/六冲/六害/相刑按传统口径检出并落柱�
 test('刑冲合会：三合局齐全时报告三合、不重复报半合（申子辰全见）', () => {
     const r = computeBazi({ year: 1992, month: 12, day: 2, hour: 2, gender: 'male' }); // 目标凑出申/子/辰
     const sanhe = r.zhiRelations.filter((x) => x.type === '三合');
-    if (sanhe.length > 0) {
-        const banhe = r.zhiRelations.filter((x) => x.type === '半合');
-        assert.ok(banhe.every((x) => !sanhe[0].text.includes('申子辰')), '三合已报的组不再报半合');
+    assert.equal(sanhe.length, 1, '申子辰全见必须报且只报一条三合（旧断言是条件式的，三合漏报也照样绿）');
+    assert.match(sanhe[0].text, /申子辰三合水局/);
+    const banhe = r.zhiRelations.filter((x) => x.type === '半合');
+    assert.equal(banhe.filter((x) => x.text.includes('水')).length, 0, '三合已报的组不再报该组半合');
+});
+
+// ── P1-3 回归：三合/三刑的判据必须数「不重复的地支」，不能数「出现次数」。
+// 旧实现用 entries.filter(...) 得到的是命中「次数」，于是同一判据两个方向都会错：
+//  · 重复支凑数 → 凭空造出不存在的三合局；
+//  · 重复支挤掉判定 → 真三合/真三刑漏报，并在对刑循环里退化成多条重复行。
+// 三个实盘都是遍历 1955–1975 年历实搜出来的，不是构造的假四柱。
+test('三合判据：重复地支不得凑成三合局（辰子未辰无申 → 不报三合，改报子辰半合）', () => {
+    const r = computeBazi({ year: 2012, month: 12, day: 12, hour: 8, gender: 'male' });
+    const zs = Object.values(r.pillars).map((p) => p.zhi);
+    assert.equal(zs.join(''), '辰子未辰', '盘面前提：四支辰子未辰，无申');
+    assert.equal(r.zhiRelations.filter((x) => x.type === '三合').length, 0, '缺申不成申子辰局，绝不能报三合');
+    const banhe = r.zhiRelations.filter((x) => x.type === '半合');
+    assert.equal(banhe.length, 1, '子辰半合水（含中神子）必须报出来');
+    assert.match(banhe[0].text, /半合水局/);
+});
+
+test('三合判据：三支齐全且有重复支时，真三合只报一条（子辰申辰 → 申子辰水局）', () => {
+    const r = computeBazi({ year: 1960, month: 4, day: 14, hour: 8, gender: 'male' });
+    const zs = Object.values(r.pillars).map((p) => p.zhi);
+    assert.equal(zs.join(''), '子辰申辰', '盘面前提：申子辰齐全，辰重复（旧实现命中数=4 → 双双漏报）');
+    const sanhe = r.zhiRelations.filter((x) => x.type === '三合');
+    assert.equal(sanhe.length, 1, '申子辰三合水局必须报且只报一条');
+    assert.match(sanhe[0].text, /申子辰三合水局/);
+});
+
+test('三刑判据：丑戌未全见（含重复支）报一条无恩之刑，不退化成多条对刑（未未戌丑）', () => {
+    const r = computeBazi({ year: 1955, month: 7, day: 12, hour: 1, gender: 'male' });
+    const zs = Object.values(r.pillars).map((p) => p.zhi);
+    assert.equal(zs.join(''), '未未戌丑', '盘面前提：丑戌未齐全，未重复');
+    const xing = r.zhiRelations.filter((x) => x.type === '相刑');
+    assert.equal(xing.length, 1, '旧实现此处吐 5 条对刑且漏掉三刑全见');
+    assert.match(xing[0].text, /丑戌未|无恩之刑/, '应成组报无恩之刑');
+});
+
+test('三刑判据：子卯相刑只报一条，重复的子不产生第二行（亥子卯子）', () => {
+    const r = computeBazi({ year: 1960, month: 1, day: 3, hour: 23, gender: 'male' });
+    const zs = Object.values(r.pillars).map((p) => p.zhi);
+    assert.equal(zs.join(''), '亥子卯子', '盘面前提：子出现两次');
+    const xing = r.zhiRelations.filter((x) => x.type === '相刑');
+    assert.equal(xing.length, 1, '同一对「子卯」按支取值报一次，落柱合并列举');
+    assert.match(xing[0].text, /无礼之刑/);
+});
+
+test('成对关系落柱：重复支合并到同一行的柱位列表里（午未合而午出现两次）', () => {
+    const r = computeBazi({ year: 1990, month: 8, day: 16, hour: 12, gender: 'male' });
+    for (const rel of r.zhiRelations) {
+        const heads = [...rel.text.matchAll(/([年月日时]+)支([子丑寅卯辰巳午未申酉戌亥])/g)];
+        for (const m of heads) {
+            assert.ok(m[1].length <= 4, `${rel.type}：柱位标签应为去重后的合并列表`);
+            assert.equal(new Set(m[1].split('')).size, m[1].length, `${rel.type}：柱位标签不得重复「${m[1]}」`);
+        }
     }
 });
 

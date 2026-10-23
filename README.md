@@ -12,6 +12,8 @@
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![tests](https://img.shields.io/badge/tests-passing-green)]()
 
+[English](./README_EN.md) · 简体中文
+
 </div>
 
 ---
