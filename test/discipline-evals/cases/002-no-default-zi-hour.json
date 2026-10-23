@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "002-no-default-zi-hour",
+  "rule": "纪律 2（缺输入先问不猜）",
+  "kind": "engine",
+  "engine": "bazi",
+  "args": { "year": 1990, "month": 8, "day": 16, "gender": "male", "calendar": "solar" },
+  "assertions": [
+    { "path": "meta.timeZhi", "operator": "equals", "value": null },
+    { "path": "pillars.hour.ganZhi", "operator": "missing", "why": "不得默默按子时排出时柱" }
+  ]
+}

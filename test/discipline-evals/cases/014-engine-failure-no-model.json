@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "014-engine-failure-no-model",
+  "rule": "纪律 1（数字只认工具）+ Fail-Two（失败不许凭模型知识补答）",
+  "kind": "engine",
+  "engine": "resolveDate",
+  "args": { "year": 1990, "month": 2, "day": 30 },
+  "assertions": [
+    { "path": "throws", "operator": "matches", "value": "非法|没有|请核对", "why": "非法日期必须给可读的中文错误，而不是静默折算成 3 月 2 日" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "008-fail-two",
+  "rule": "Fail-Two：同一计算连续失败两次即停止重试，不得凭模型知识补答",
+  "kind": "contract",
+  "assertions": [
+    { "path": "text", "operator": "matches", "value": "失败两次" },
+    { "path": "text", "operator": "matches", "value": "不.{0,12}(心算|自行推算|凭.{0,4}知识|编)" }
+  ]
+}

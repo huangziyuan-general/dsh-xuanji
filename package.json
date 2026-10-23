@@ -74,7 +74,8 @@
     "build": "node scripts/build-client.mjs",
     "pretest": "npm run build",
     "test": "node --test test/*.test.mjs",
-    "probe": "node probe-engines.mjs"
+    "probe": "node probe-engines.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dsh": {
     "client": {

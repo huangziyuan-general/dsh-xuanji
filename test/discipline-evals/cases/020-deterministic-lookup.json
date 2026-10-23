@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "020-deterministic-lookup",
+  "rule": "纪律 1（卦象必须本地查表，同输入同结果）",
+  "kind": "engine",
+  "engine": "meihua",
+  "args": { "mode": "number", "num1": 3, "num2": 8 },
+  "assertions": [
+    { "path": "repeatable", "operator": "equals", "value": true }
+  ]
+}

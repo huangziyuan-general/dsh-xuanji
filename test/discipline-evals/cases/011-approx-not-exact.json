@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "011-approx-not-exact",
+  "rule": "纪律 5（出处标注：启发式必须标明是启发式）",
+  "kind": "engine",
+  "engine": "bazi",
+  "args": { "year": 1990, "month": 8, "day": 16, "hour": 14, "gender": "male", "calendar": "solar" },
+  "assertions": [
+    { "path": "disclaimer", "operator": "matches", "value": "简化|启发式" },
+    { "path": "disclaimer", "operator": "matches", "value": "娱乐|参考" }
+  ]
+}

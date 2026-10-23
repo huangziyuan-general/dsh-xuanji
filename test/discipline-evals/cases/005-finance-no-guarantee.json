@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "005-finance-no-guarantee",
+  "rule": "纪律 6（边界：不做投资断言）",
+  "kind": "contract",
+  "assertions": [
+    { "path": "text", "operator": "matches", "value": "投资" },
+    { "path": "text", "operator": "matches", "value": "法律" }
+  ]
+}

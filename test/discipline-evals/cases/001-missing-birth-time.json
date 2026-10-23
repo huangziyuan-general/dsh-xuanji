@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "001-missing-birth-time",
+  "rule": "纪律 2（缺输入先问不猜）",
+  "kind": "engine",
+  "engine": "bazi",
+  "args": { "year": 1990, "month": 8, "day": 16, "gender": "male", "calendar": "solar" },
+  "assertions": [
+    { "path": "meta.timeKnown", "operator": "equals", "value": false },
+    { "path": "pillars.hour", "operator": "missing" },
+    { "path": "meta.solar", "operator": "not-matches", "value": "12:00", "why": "时辰未知时不得打印占位时间——用户会把它当成真实出生时刻" }
+  ]
+}

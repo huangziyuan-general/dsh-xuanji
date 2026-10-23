@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "012-report-privacy",
+  "rule": "隐私：完整生辰与可识别信息不得写入长期存储或日志",
+  "kind": "contract",
+  "assertions": [
+    { "path": "text", "operator": "matches", "value": "隐私" },
+    { "path": "text", "operator": "matches", "value": "生辰.{0,20}(不得|不写).{0,12}(存储|日志)" }
+  ]
+}

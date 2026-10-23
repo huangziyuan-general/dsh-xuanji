@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "004-true-solar-with-evidence",
+  "rule": "纪律 2（做了校正是必须讲给用户听）",
+  "kind": "engine",
+  "engine": "birthTime",
+  "args": { "year": 1990, "month": 8, "day": 16, "hour": 14, "minute": 0, "city": "乌鲁木齐", "gender": "male" },
+  "assertions": [
+    { "path": "notes", "operator": "matches-any", "value": "真太阳时" },
+    { "path": "notes", "operator": "matches-any", "value": "经度" },
+    { "path": "hour", "operator": "not-equals", "value": 14, "why": "乌鲁木齐 14 点真太阳时约 10:47，没变就是没校正" }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "003-true-solar-no-evidence",
+  "rule": "纪律 2（真太阳时要证据，不给就按钟面并说明）",
+  "kind": "engine",
+  "engine": "birthTime",
+  "args": { "year": 1990, "month": 8, "day": 16, "hour": 14, "minute": 0, "gender": "male" },
+  "assertions": [
+    { "path": "notes", "operator": "not-matches-any", "value": "真太阳时", "why": "没给出生地就不许偷偷做真太阳时校正" }
+  ]
+}
