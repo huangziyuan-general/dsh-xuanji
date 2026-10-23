@@ -1,7 +1,7 @@
 // src/client/views/bazi-view.js — 八字页：表单 → 四柱排盘 / 五行 / 刑冲合会 / 神煞 / 大运。
 // 纯渲染，只读 state；输入值由 panel 的点击代理在提交时统一读取（非受控件）。
 import { h } from '../react.js';
-import { Card, SectionTitle, Field, Input, Select, Seg, Badge, Badges, Glyph, StatGrid, Bars, KV, Loading, Empty, ErrorBar, Notes, Divider, FooterNote, CalendarField, calendarHint, WUXING_COLOR, toneOf } from './ui.js';
+import { Card, SectionTitle, Field, Input, Select, HourSelect, Seg, Badge, Badges, Glyph, StatGrid, Bars, KV, Loading, Empty, ErrorBar, Notes, Divider, FooterNote, CalendarField, calendarHint, WUXING_COLOR, toneOf } from './ui.js';
 
 const PILLAR_LABEL = [['year', '年柱'], ['month', '月柱'], ['day', '日柱'], ['hour', '时柱']];
 
@@ -16,7 +16,7 @@ export function BaziView({ state }) {
 				h(Field, { label: calendar === 'lunar' ? '农历年' : '出生年' }, Input({ tf: 'year', placeholder: '1990', inputMode: 'numeric', defaultValue: f.year ?? '' })),
 				h(Field, { label: '月' }, Input({ tf: 'month', placeholder: '8', inputMode: 'numeric', defaultValue: f.month ?? '' })),
 				h(Field, { label: '日' }, Input({ tf: 'day', placeholder: '16', inputMode: 'numeric', defaultValue: f.day ?? '' })),
-				h(Field, { label: '时辰 0–23（可留空）' }, Input({ tf: 'hour', placeholder: '14', inputMode: 'numeric', defaultValue: f.hour ?? '' })),
+				h(Field, { label: '时辰（可留空）', span: 2 }, HourSelect({ defaultValue: f.hour ?? '' })),
 			),
 			h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '9px', alignItems: 'flex-end', marginTop: '9px' } },
 				CalendarField({ calendar, leap: f.isLeapMonth === '1' }),

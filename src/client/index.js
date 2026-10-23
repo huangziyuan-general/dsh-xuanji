@@ -18,6 +18,8 @@ import { BaziView, PillarCard, WuxingBars, RelationBadges, ShenShaChips } from '
 import { AlmanacView } from './views/almanac-view.js';
 import { QuickView } from './views/quick-view.js';
 import { ChengguView } from './views/chenggu-view.js';
+import { TrendView } from './views/trend-view.js';
+import { HOUR_OPTIONS, hourToZhi } from './views/ui.js';
 
 // 版本号：必须与 package.json 的 version 一致。
 // build-client.mjs 会把它与 package.json 对账，不一致直接构建失败（防发行漂移）。
@@ -75,5 +77,6 @@ export const __internals = {
 	buildCss, ensureStyles, PANEL_ATTR, STYLE_ID,
 	buildTrendSpec, renderTrendSvg, TarotCard, TarotView,
 	BaziView, PillarCard, WuxingBars, RelationBadges, ShenShaChips,
-	AlmanacView, QuickView, ChengguView,
+	AlmanacView, QuickView, ChengguView, TrendView,
+	HOUR_OPTIONS, hourToZhi,
 };

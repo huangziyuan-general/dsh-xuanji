@@ -2,7 +2,7 @@
 // 纯渲染，只读 state；输入值由 panel 的点击代理在提交时统一读取（非受控件）。
 import { h } from '../react.js';
 import { buildTrendSpec, renderTrendSvg } from './trend-chart.js';
-import { Card, Field, Input, Seg, Badge, Badges, StatGrid, Loading, Empty, ErrorBar, Notes, FooterNote, CalendarField, calendarHint } from './ui.js';
+import { Card, Field, Input, HourSelect, Seg, Badge, Badges, StatGrid, Loading, Empty, ErrorBar, Notes, FooterNote, CalendarField, calendarHint } from './ui.js';
 
 /** 人生K线视图。state.trend = { form:{...}|null, loading, error, result } */
 export function TrendView({ state }) {
@@ -21,8 +21,8 @@ export function TrendView({ state }) {
 				CalendarField({ calendar, leap: f.isLeapMonth === '1' }),
 				h(Field, { label: '性别', grow: 0 }, Seg({ tf: 'gender', defaultValue: f.gender ?? 'male', options: [['male', '男命'], ['female', '女命']] })),
 				h('div', { className: 'o-field', style: { flex: '1 1 96px' } },
-					h('span', { className: 'o-label' }, '时辰 0–23（可留空）'),
-					Input({ tf: 'hour', placeholder: '14', inputMode: 'numeric', defaultValue: f.hour ?? '' }),
+					h('span', { className: 'o-label' }, '出生时辰（可留空）'),
+					HourSelect({ defaultValue: f.hour ?? '' }),
 				),
 				h('button', {
 					'data-action': 'trend-submit', 'data-xuanji-btn': '1', 'data-variant': 'primary',

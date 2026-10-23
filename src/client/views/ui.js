@@ -25,9 +25,11 @@ export const Card = ({ title = null, tone = null, right = null, children }) => h
 );
 
 /** 表单字段：标签 + 控件。grow=0 表示按内容收缩（如分段控件），不参与挤压。 */
-export const Field = ({ label, children, grow = 1 }) => h('div', {
+export const Field = ({ label, children, grow = 1, span = 0 }) => h('div', {
 	className: 'o-field',
 	style: {
+		// span：在 o-grid（grid 布局）里跨几列；grow：在 flex 行里占几份。两套布局各取所需。
+		...(span > 0 ? { gridColumn: `span ${span}` } : {}),
 		...(grow > 0
 			? { flex: `${grow} 1 0`, minWidth: `${grow * 52}px` }
 			: { flex: '0 0 auto' }),
@@ -54,6 +56,36 @@ export const Input = ({ tf, placeholder, width = null, inputMode = null, type = 
 export const Select = ({ tf, options, defaultValue = '' }) => h('select', {
 	'data-xuanji-panel-input': '1', 'data-tf': tf, defaultValue,
 }, options.map(([value, label]) => h('option', { key: value, value }, label)));
+
+/**
+ * 时辰下拉（0–23 时，逐时标出所属时辰）。
+ *
+ * 为什么下拉而不是手输：手输 0–23 会出现「24」「下午3点」「15 点半」这类输入，
+ * 而时辰错一档 = 时柱整柱错，是最容易犯又最不容易察觉的错。
+ *
+ * 为什么不直接选十二时辰：真太阳时校正是按小时算的（乌鲁木齐 13 点会校正到 10 点，
+ * 跨了两个时辰），只选到时辰会把校正的输入精度砍掉，校正结果跟着漂。所以保留 24 小时，
+ * 只在标签里标出它属于哪个时辰——既不用手输，也不损失精度。
+ */
+export const HOUR_ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
+/** 小时 → 时辰：子时跨 23–01，故 (h+1)%24 再折半。 */
+export function hourToZhi(hour) {
+	return HOUR_ZHI[Math.floor(((Number(hour) + 1) % 24) / 2)];
+}
+
+export const HOUR_OPTIONS = [
+	['', '不知道时辰（留空）'],
+	...Array.from({ length: 24 }, (_, h) => [
+		String(h),
+		`${String(h).padStart(2, '0')} 时 · ${hourToZhi(h)}时`,
+	]),
+];
+
+/** 时辰下拉。tf 恒为 'hour'，值为 0–23 的整数串，空串表示时辰未知。 */
+export const HourSelect = ({ tf = 'hour', defaultValue = '' }) => Select({
+	tf, options: HOUR_OPTIONS, defaultValue: defaultValue ?? '',
+});
 
 /** 分段控件（性别 / 模式）：点选切换，值写进隐藏 input 供表单统一读取。 */
 export const Seg = ({ tf, options, defaultValue, disabled = false }) => h('div', {

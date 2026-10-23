@@ -513,6 +513,27 @@ test('渲染：塔罗「所问何事」输入框两种模式都常驻——不�
     }
 });
 
+test('渲染：时辰一律下拉选择（手输 0–23 会错时柱），且小时→时辰映射正确', () => {
+    const { loaded } = boot();
+    const { BaziView, TrendView, HOUR_OPTIONS, hourToZhi } = loaded.exports.__internals;
+
+    // 映射：子时跨 23–01，最容易写错的是 0 点落子和 23 点落亥
+    assert.equal(hourToZhi(0), '子', '0 点属子时（23–01），不是亥');
+    assert.equal(hourToZhi(23), '子', '23 点属子时');
+    assert.equal(hourToZhi(1), '丑');
+    assert.equal(hourToZhi(13), '未');
+    assert.equal(hourToZhi(14), '未');
+    assert.equal(HOUR_OPTIONS.length, 25, '24 个小时 + 一个「不知道时辰」空选项');
+
+    for (const [name, View, key] of [['八字', BaziView, 'bazi'], ['人生K线', TrendView, 'trend']]) {
+        const html = JSON.stringify(View({ state: { [key]: { form: { calendar: 'solar', hour: '14' } } } }));
+        assert.ok(html.includes('data-tf":"hour"'), `${name} 页必须有 hour 字段`);
+        assert.ok(html.includes('"type":"select"'), `${name} 页的时辰必须是下拉 <select>，不能手输`);
+        assert.ok(html.includes('不知道时辰（留空）'), `${name} 页必须提供「时辰未知」选项`);
+        assert.ok(html.includes('14 时 · 未时'), `${name} 页小时标签要标出所属时辰`);
+    }
+});
+
 test('构建产物守卫：PLUGIN_VERSION 与 package.json 一致；fence/PREFIX 与服务端一致', () => {
     const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
     const src = fs.readFileSync(new URL('../src/client/index.js', import.meta.url), 'utf8');
