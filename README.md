@@ -8,13 +8,21 @@
 
 *全部由本地确定性引擎计算——干支、星曜、卦象、骨重零模型推演，模型只负责解读。*
 
-[![release](https://img.shields.io/badge/release-v0.3.0-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
+[![release](https://img.shields.io/badge/release-v0.3.1-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![tests](https://img.shields.io/badge/tests-passing-green)]()
 
 [English](./README_EN.md) · 简体中文
 
 </div>
+
+## 预览 · Preview
+
+| 八字排盘 | 六爻纳甲 | 塔罗 |
+| :---: | :---: | :---: |
+| ![dsh-xuanji 面板截图：八字排盘（四柱·大运·流年）](assets/panel-bazi.png) | ![dsh-xuanji 面板截图：六爻纳甲装卦（纳甲·六亲·六神·世应）](assets/panel-liuyao.png) | ![dsh-xuanji 面板截图：塔罗每日一牌](assets/panel-tarot.png) |
+
+更多页面截图见 [screenshots.json](./screenshots.json) 声明的清单（人生K线 / 黄历 / 称骨 / 快占）。
 
 ---
 
