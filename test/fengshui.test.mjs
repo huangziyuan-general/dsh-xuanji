@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { computeFengshui, mingGua, eightStars, yearlyFlying, yearZibaiStar, NINE_STARS, MOUNTAINS_24, mountainInfo, sittingFromFacing } from '../lib/engine/fengshui.js';
+import { computeFengshui, mingGua, eightStars, yearlyFlying, yearZibaiStar, NINE_STARS, MOUNTAINS_24, mountainInfo, sittingFromFacing, computeXuanKong, periodOf } from '../lib/engine/fengshui.js';
 import { Lunar } from 'lunar-javascript';
 
 test('命卦锚点（已查证世纪口径）：1990男坎/1990女艮/2000男离/2000女乾/2026男坎/2026女艮', () => {
@@ -165,4 +165,62 @@ test('computeFengshui fortuneYear 参数真实生效（传 2035 出一白入中�
     const f = computeFengshui({ year: 1990, month: 8, day: 16, gender: 'male', fortuneYear: 2035 });
     assert.equal(f.yearlyFlying.center, 1);
     assert.equal(f.yearlyFlying.centerName, '一白');
+});
+
+// ── P1.9 玄空飞星：三元九运 + 运盘/山盘/向盘/宅命盘 + 旺山旺向格局。
+test('P1.9 三元九运：2026→九运、2004→八运、1864→一运', () => {
+    assert.equal(periodOf(2026), 9);
+    assert.equal(periodOf(2004), 8);
+    assert.equal(periodOf(1864), 1);
+});
+
+test('P1.9 运盘：九运九入中顺飞（中9 乾1 兑2 艮3 离4 坎5 坤6 震7 巽8）', () => {
+    const r = computeXuanKong({ year: 2026, sitting: '子' });
+    assert.equal(r.yunPan['中'], 9);
+    assert.equal(r.yunPan['乾'], 1);
+    assert.equal(r.yunPan['坎'], 5);
+    assert.equal(r.yunPan['巽'], 8);
+});
+
+test('P1.9 山/向盘：坐子(阴逆) 山盘坐山宫=旺星9；子山午向九运判旺山旺向', () => {
+    const r = computeXuanKong({ year: 2026, sitting: '子' });
+    assert.equal(r.meta.facing, '午山（离宫，阴·逆飞）', '子山对宫为午向（午属阴逆飞）');
+    assert.equal(r.shanPan['坎'], 9, '山盘：5入中逆飞，旺星9到坐山(坎)');
+    assert.equal(r.xiangPan['离'], 9, '向盘：4入中逆飞，旺星9到向首(离)');
+    assert.equal(r.pattern.key, '旺山旺向');
+});
+
+test('P1.9 宅命盘：九宫各含 运/山/向 三元', () => {
+    const r = computeXuanKong({ year: 2026, sitting: '子' });
+    assert.equal(r.chart.length, 9);
+    for (const c of r.chart) {
+        assert.ok([1, 2, 3, 4, 5, 6, 7, 8, 9].includes(c.yun));
+        assert.ok([1, 2, 3, 4, 5, 6, 7, 8, 9].includes(c.shan));
+        assert.ok([1, 2, 3, 4, 5, 6, 7, 8, 9].includes(c.xiang));
+    }
+});
+
+// ── 玄空飞星格局判定：对公开表（九运二十四山子集）逐字校验，防飞星公式/阴阳表回归 ──
+test('P1.9 玄空格局判定：九运 14 坐向与公开飞星盘表逐字一致（子午旺山旺向/甲庚上山下水/乙辛旺山旺向/艮坤上山下水/巳亥上山下水/辰戌旺山旺向）', () => {
+    const expect = {
+        子午: '旺山旺向', 午子: '旺山旺向',
+        卯酉: '旺山旺向', 酉卯: '旺山旺向',
+        乙辛: '旺山旺向', 辛乙: '旺山旺向',
+        辰戌: '旺山旺向', 戌辰: '旺山旺向',
+        甲庚: '上山下水', 庚甲: '上山下水',
+        艮坤: '上山下水', 坤艮: '上山下水',
+        巳亥: '上山下水', 亥巳: '上山下水',
+    };
+    for (const [sf, exp] of Object.entries(expect)) {
+        const r = computeXuanKong({ year: 2026, sitting: sf[0], facing: sf[1] });
+        assert.equal(r.pattern.key, exp, `九运${sf} 应判 ${exp}`);
+    }
+});
+
+test('P1.9 玄空运盘：九运 9 入中顺飞（中9 乾1 兑2 艮3 离4 坎5 坤6 震7 巽8），锚点 1864→一运', () => {
+    const r = computeXuanKong({ year: 2026, sitting: '子' });
+    assert.deepEqual(r.yunPan, { 中: 9, 乾: 1, 兑: 2, 艮: 3, 离: 4, 坎: 5, 坤: 6, 震: 7, 巽: 8 });
+    assert.equal(periodOf(1864), 1, '1864 甲子 = 一运');
+    assert.equal(periodOf(2043), 9, '2043 仍在九运');
+    assert.equal(periodOf(2044), 1, '2044 入下一轮一运（clamp 到 1）');
 });

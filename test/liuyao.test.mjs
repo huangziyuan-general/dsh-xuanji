@@ -310,3 +310,27 @@ test('六爻页：结果区渲染本卦/世应/纳甲/六亲/六神/变卦，不
 		assert.ok(t.includes(l.wangShuai), `六爻表应渲染旺衰 ${l.wangShuai}`);
 	}
 });
+
+// ── P1.7 深度：用神定位 + 应期启发式 + 卦体（需问句才定用神，不猜）。
+test('P1.7 用神：问投资赚钱 → 取妻财为用神，且给应期启发式', () => {
+    const r = computeLiuyao({ mode: 'numbers', nums: '6,7,8,9,7,8', question: '这次投资能赚钱吗', date: '2026-10-23' });
+    assert.equal(r.yongShen.found, true);
+    assert.deepEqual(r.yongShen.targets, ['妻财']);
+    assert.ok(r.yongShen.lines.length >= 1, '应找到妻财爻');
+    assert.ok(Array.isArray(r.yongShen.yingqi) && r.yongShen.yingqi.length > 0, '应给应期启发式');
+    assert.ok(r.yongShen.yingqi.every((h) => h.startsWith('启发式')), '应期须标注「启发式」');
+});
+
+test('P1.7 用神：无问句时不猜，返回 reason 要求先问', () => {
+    const r = computeLiuyao({ mode: 'numbers', nums: '6,7,8,9,7,8', date: '2026-10-23' });
+    assert.equal(r.yongShen.found, false);
+    assert.ok(r.yongShen.reason.includes('所占之事未知'), '无问句须要求先问');
+});
+
+test('P1.7 卦体：本卦八宫归属 + 世应 + 动爻数', () => {
+    const r = computeLiuyao({ mode: 'numbers', nums: '6,7,8,9,7,8', date: '2026-10-23' });
+    assert.equal(r.guaTi.palace, '兑宫');
+    assert.equal(r.guaTi.shi, 1);
+    assert.equal(r.guaTi.ying, 4);
+    assert.equal(r.guaTi.movingCount, 2);
+});

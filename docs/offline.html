@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>玄机阁 · 离线能力页</title>
+<style>
+  body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;color:#222;background:#fafafa}
+  h1{font-size:1.4rem} h2{font-size:1.1rem;margin-top:1.6rem}
+  .banner{padding:.6rem 1rem;border-radius:8px;font-weight:600;display:inline-block}
+  .allpass{background:#e6f6ec;color:#1a7f37} .notall{background:#fdecea;color:#b3261e}
+  table{border-collapse:collapse;width:100%;margin-top:.6rem;font-size:.9rem}
+  th,td{border:1px solid #e2e2e2;padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:#f0f0f0} .tool{font-family:ui-monospace,monospace;white-space:nowrap}
+  tr.ok td:nth-child(3){color:#1a7f37} tr.bad td:nth-child(3){color:#b3261e;font-weight:700}
+  .detail{color:#666;font-family:ui-monospace,monospace;font-size:.8rem}
+  ol.rules{font-size:.92rem;line-height:1.7}
+  footer{margin-top:2rem;color:#777;font-size:.85rem}
+</style></head>
+<body>
+  <h1>玄机阁（dsh-xuanji）· 离线能力页</h1>
+  <p>本页为单文件离线快照：无外链、无脚本依赖，任何浏览器可直接打开。排盘本体运行在 DSH 宿主的工具面里；本页只静态展示能力目录、排盘纪律与最近一次公开对拍结果。生成于 2026-11-01。</p>
+
+  <h2>一、工具目录（18 个 xuanji_* 工具，全部本地确定性排盘）</h2>
+  <table><thead><tr><th>工具</th><th>能力</th></tr></thead><tbody><tr><td class="tool">xuanji_bazi</td><td>八字排盘（纯本地确定性计算，零模型推演）：给出公历或农历生日 + 时辰 + 性别，返回四柱干支（含纳音、地支藏干与藏干十神、每柱旬空、日主星运十二长生与各柱自坐）、日主、五行计数与简化旺衰、胎元/命宫/身宫/日柱旬空、原局地支刑冲合会（三合/半合/六合/六冲/六害/三刑/对刑/自刑，传统通行口径）、常用神煞（天乙/文昌/太极/金舆/国印/桃花/驿马/华盖/将星/羊刃/红鸾天喜/孤辰寡宿/天德月德及其合/劫煞灾煞亡神等 21 种，带落柱与起法）、起运时间与交运岁数、大运列表（含起止年份与干支十神）、当年明年流年干支与十神，以及《穷通宝鉴》调候用神（日干×节气月令之寒暖燥湿喜忌，与旺衰喜用互补、不互相替代）。</td></tr><tr><td class="tool">xuanji_ziwei</td><td>紫微斗数排盘（纯本地确定性计算，iztro 安星引擎）：给出公历或农历生日 + 时辰 + 性别，返回十二宫（命宫/兄弟/夫妻/子女/财帛/疾厄/迁移/仆役/官禄/田宅/福德/父母）的宫位干支、十四主星及亮度与生年四化（禄权科忌）、六吉六煞等辅曜、大限起讫年龄、命主/身主/五行局。</td></tr><tr><td class="tool">xuanji_meihua</td><td>梅花易数起卦（纯本地确定性计算）：mode=time 以时刻起卦（默认当前时刻，或给 date+hour），mode=number 以用户随口报的两个正整数起卦（前数上卦、后数下卦、和数加时辰取动爻）。</td></tr><tr><td class="tool">xuanji_almanac</td><td>每日黄历（纯本地确定性计算）：给定公历日期（缺省今天），返回农历、干支年月日、生肖、宜忌清单、冲煞（冲什么生肖、煞在何方）、喜神/财神/福神/阳贵/阴贵方位、节气（当前/上一/下一）、节日、值神、二十八星宿、月相、六曜、彭祖百忌、吉神凶煞，并附「每日一卦」（日期确定性取卦，同一天永远同一卦）。</td></tr><tr><td class="tool">xuanji_chenggu</td><td>袁天罡称骨算命（纯本地确定性计算）：按农历出生年/月/日/时辰查骨重表求和（如三两九钱），并按骨重分档给白话批语。</td></tr><tr><td class="tool">xuanji_star</td><td>星座运势（本地确定性）：给定公历日期（缺省今天），返回该日期的太阳星座档案（四象、守护星、性格关键词、契合星座）与当日四维基调（事业/感情/财运/健康 1–5 星 + 幸运色/幸运数字）。</td></tr><tr><td class="tool">xuanji_zeri</td><td>择日（纯本地确定性计算）：给定事项（嫁娶/订婚/开业/入宅/搬家/动土/装修/安葬/出行/祭祀/签约/求医/纳财）+ 日期区间（缺省今天起 30 天）+ 当事人属相（可选，用于排除冲煞日），逐日按黄历宜忌、建除十二神适配、冲煞排除打分排序，输出推荐日/可用日/回避日及依据。</td></tr><tr><td class="tool">xuanji_fengshui</td><td>风水（纯本地确定性计算）。</td></tr><tr><td class="tool">xuanji_name</td><td>起名（纯本地确定性计算）。</td></tr><tr><td class="tool">xuanji_trend</td><td>人生K线（纯本地确定性计算）：给生辰 + 性别，按大运干支（权重高）与流年干支十神对日主的简化启发式，输出 1–100 岁逐年运势分与 K 线形态（开/收/高/低），附大运分段 ASCII 迷你图与最佳/最差年份。</td></tr><tr><td class="tool">xuanji_tarot</td><td>塔罗（纯本地确定性抽牌）：mode=daily 每日一牌（同日同牌同正逆位）。</td></tr><tr><td class="tool">xuanji_xiaoliuren</td><td>小六壬（诸葛马前课，纯本地确定性）：轻量快占。</td></tr><tr><td class="tool">xuanji_match</td><td>八字合婚/合盘（纯本地确定性计算）：给双方出生年月日（时辰可选），输出传统通行口径的确定性关系事实——属相关系（六合/三合/六冲/六害/相刑/自刑）、日主生克与天干五合、双向十神映射（对方日干在我方盘中为何种十神）、跨盘三合/半合与跨盘六合（年支×日支交叉成局）、年命纳音生克，并给简化综合分档（上/中上/中/需磨合，吉凶象计数启发式）。</td></tr><tr><td class="tool">xuanji_numerology</td><td>生命数字（纯本地确定性计算，西方数字学体系）：给出生年月日，算生命路径数、生日数、态度数（11/22/33 主数保留），每个数给白话数义（倾向与课题）。</td></tr><tr><td class="tool">xuanji_qimen</td><td>奇门遁甲（纯本地确定性计算，时家转盘·拆补法，通行歌诀三元表）：给公历或农历日期 + 时辰（0–23，必填，缺时辰整盘不可排），返回阳遁/阴遁、节气三元与局数、时干支、旬首（六甲遁六仪）、值符星、值使门及其落宫、旬空，以及九宫的地盘三奇六仪（随局落宫）、天盘九星（携本宫仪奇、保持环形相对序旋转）、八门落宫。</td></tr><tr><td class="tool">xuanji_liuyao</td><td>六爻纳甲（京房）起卦：把用户摇出的六个爻象（或六次掷币记录）排成完整卦例——本卦（卦名/卦画/八宫归属/世应）、纳甲干支、六亲、六神、旺相休囚死、旬空、月破/日破/暗动、动爻与变卦（变爻干支与回头生克）。</td></tr><tr><td class="tool">xuanji_mbti</td><td>MBTI 十六型人格（本地确定性问卷，纯本地计算，零模型推理）：共 24 题，每题二选一。</td></tr><tr><td class="tool">xuanji_daliuren</td><td>大六壬（本地确定性排盘，实验性）：天地盘、四课、贼克法三传。</td></tr></tbody></table>
+
+  <h2>二、排盘纪律（模型解读必须遵守的铁律）</h2>
+  <ol class="rules"><li>**数字只认工具**：一切干支、卦象、骨重、星曜、星宿等确定性事实必须来自 xuanji_* 工具的返回值；你绝不自行推算或「心算补全」任何干支/卦画/骨重/星曜落宫——排错一个字就是全错。</li><li>**缺输入先问，不猜**：八字、紫微与称骨必须拿到完整生辰（年月日、时辰、性别）才调用工具；合婚需要双方生辰；时辰或性别缺失时向用户询问确认，绝不代填猜测值，也不许按「默认子时 / 默认 12 点」糊弄（xuanji_bazi 可排三柱但必须向用户说明时柱暂缺）。出生年在 1986–1991 或用户能提供出生城市时，主动用 applyDST/city 参数做夏令时与真太阳时校正（xuanji_bazi/xuanji_ziwei/xuanji_trend/xuanji_name 均支持），并把 meta.notes 里的口径说明讲给用户听。</li><li>**四层输出**：每次解读严格分层——① 排盘事实（复述工具返回的干支/卦象/骨重/星曜）② 传统解读（引用五行生克/体用关系/四化等工具给定的断语框架）③ 现实行动建议（落到可执行的事）④ 免责声明（工具返回的 disclaimer 原文或同义句）。四层缺一不可，别把文化阐释说成确定结论。</li><li>**工具选择**：问性格格局/一生大势/事业财运总论 → xuanji_bazi 或 xuanji_ziwei（用户点名紫微、想看十二宫与星曜落宫时用 ziwei；点名八字/四柱时用 bazi；都没点名时可问一句偏好；用户要「全面分析」时两套都排并做交叉印证，冲突处分层列证）；看人生趋势/哪几年顺 → xuanji_trend；问某件具体事（换工作、该不该去）→ xuanji_meihua（先问清所为何事再起卦，或请用户报两个数）；要快速随手占一下/报数问事 → xuanji_xiaoliuren（口径粗，正经分析引导改用 meihua）；点名塔罗/抽牌 → xuanji_tarot（三牌阵先问所问何事）；问「今天适合做什么」→ xuanji_almanac；用户点名要称骨 → xuanji_chenggu；问星座 → xuanji_star；问「哪天适合办某事」→ xuanji_zeri（先问事项与属相）；问「某时该往哪个方位/奇门怎么看这件事/开市出行择时」→ xuanji_qimen（需日期+时辰，缺时辰先问）；问吉方位/东四西四命/今年九宫飞星 → xuanji_fengshui（action=natal）；问房屋坐向与门主灶布置 → xuanji_fengshui（action=advise，先问清坐山或向山——「坐北朝南」=坐子向午，给生辰可加命宅配）；问「这个名字合不合八字」→ xuanji_name（action=assess）；要起名/要候选名 → xuanji_name（action=generate，需姓氏+生辰+性别，结果提醒用户读念把关音韵谐音）；问「我俩八字合不合/属相配不配/合婚」→ xuanji_match（需双方生辰，冲刑害一律翻译成中性表达）；用户点名「生命数字/生命灵数」→ xuanji_numerology（西方体系，与八字紫微不同口径不可互证）；点名 MBTI / 十六型人格 / 想知道自己是什么型 → xuanji_mbti（先调一次拿 24 题问卷，逐题问用户、绝不代填，收集齐 24 个 0/1 后再调一次出类型）；点名大六壬 / 六壬 / 三传占法 → xuanji_daliuren（需公历生日 + 占时，缺占时先问；结果标注「实验性、三传九宗门其余八法待校准」，不可当定论）。一次占问只选最贴合的一个工具，不连环全排一遍。</li><li>**出处标注**：转述任何断语/批语时带上工具返回的口径出处——区分「传统原文」「传统通行口径」「简化判定/启发式」「白话自撰」「自建字库」五级；工具未收录或未计算的（如字库未收录的字、起名字库外的字）如实说明，绝不臆断补全。</li><li>**边界**：不做医疗、投资、法律断言；用户表现出焦虑或重大现实决策（健康/财务/婚恋/诉讼）时，把重点放在第③层现实建议上，并提示寻求专业人士；不使用恐吓性断语（如「血光之灾」），传统术语先解释再使用；风水建议只到「倾向」层面（吉方宜坐卧、五黄宜静），不做现场勘舆结论。</li><li>**语气**：语言平实自然，像懂行的朋友聊天，不堆砌神秘化辞藻；卦象吉凶永远给「为什么」与「怎么办」，不给宿命论式结论。</li><li>**Fail-Two（失败两次就停）**：同一计算连续失败两次后停止重试，如实告诉用户当前算不出来、需要补什么输入；第三次不许盲试，也绝不凭自己的知识补一个干支/卦象/骨重糊过去——算不出来就说算不出来，比给一个错的盘强。</li><li>**隐私与最小回显**：完整生辰（年月日时）、具体地点等可识别信息不得写入长期存储、笔记、日志或对外报告；复盘与总结时只留脱敏结论（如「1990 年男命·身强」），不回显完整输入历史，也不把工具返回的原始 JSON 信封整段贴给用户——用户要看的是结论，不是报文。</li></ol>
+
+  <h2>三、公开对拍快照</h2>
+  <div class="banner allpass">全部通过：12/12</div>
+  <p>锚点采用「独立重算」口径：预期值由最原始的干支原语在本地重推，不引用被测常量——避免「测试抄实现」导致的全绿但错。</p>
+  <table><thead><tr><th>分组</th><th>锚点</th><th>结果</th><th>明细</th></tr></thead><tbody>
+  <tr class="ok">
+    <td>干支</td><td>1984 年为甲子年</td>
+    <td>通过</td><td class="detail">yearGanZhi(1984)=甲子</td>
+  </tr>
+  <tr class="ok">
+    <td>干支</td><td>六十甲子 60 位且与独立重算一致</td>
+    <td>通过</td><td class="detail"></td>
+  </tr>
+  <tr class="ok">
+    <td>干支</td><td>旬空：甲子旬空戌亥（独立重算一致）</td>
+    <td>通过</td><td class="detail">xunKongOf=戌亥 indep=戌亥</td>
+  </tr>
+  <tr class="ok">
+    <td>干支</td><td>旬空：癸亥旬空子丑（独立重算一致）</td>
+    <td>通过</td><td class="detail"></td>
+  </tr>
+  <tr class="ok">
+    <td>干支</td><td>藏干：子藏癸 / 寅藏甲丙戊</td>
+    <td>通过</td><td class="detail"></td>
+  </tr>
+  <tr class="ok">
+    <td>干支</td><td>十二长生：甲木长生在亥（独立重算一致）</td>
+    <td>通过</td><td class="detail"></td>
+  </tr>
+  <tr class="ok">
+    <td>六爻</td><td>八宫 64 卦、无重复、皆合法卦序（King Wen 1–64）</td>
+    <td>通过</td><td class="detail">八宫序号数=64</td>
+  </tr>
+  <tr class="ok">
+    <td>梅花</td><td>报数起卦返回本卦/互卦且为合法卦名</td>
+    <td>通过</td><td class="detail"></td>
+  </tr>
+  <tr class="ok">
+    <td>塔罗</td><td>78 全牌、牌名唯一</td>
+    <td>通过</td><td class="detail">FULL_DECK.length=78</td>
+  </tr>
+  <tr class="ok">
+    <td>MBTI</td><td>同答案同类型、档案非空</td>
+    <td>通过</td><td class="detail">type=ESTJ</td>
+  </tr>
+  <tr class="ok">
+    <td>引文</td><td>收录非空且至少覆盖 4 部经典</td>
+    <td>通过</td><td class="detail">books=滴天髓/子平真诠/三命通会/穷通宝鉴</td>
+  </tr>
+  <tr class="ok">
+    <td>引文</td><td>每条引文有书目/主题/引文且非空</td>
+    <td>通过</td><td class="detail"></td>
+  </tr></tbody></table>
+
+  <footer>解读属传统文化范畴，仅供娱乐参考，不构成医疗、投资、法律建议。</footer>
+</body></html>

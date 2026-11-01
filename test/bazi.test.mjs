@@ -227,3 +227,23 @@ test('晚子时 ziShi=2：日柱按当日 癸丑，时柱 甲子', () => {
     assert.equal(b.pillars.day.ganZhi, '癸丑');
     assert.equal(b.pillars.hour.ganZhi, '甲子');
 });
+
+// ── P1.6 深度：调候用神 + 交运（与旺衰喜用互补、不互相替代）。
+test('P1.6 调候用神（穷通宝鉴·节气月令）：癸日主生于申月(秋) 喜辛、忌金', () => {
+    const r = computeBazi({ year: 1990, month: 8, day: 16, hour: 14, minute: 30, gender: 'male' });
+    assert.equal(r.dayMaster.gan, '癸');
+    assert.equal(r.pillars.month.zhi, '申');
+    assert.equal(r.tiaoHou.found, true);
+    assert.equal(r.tiaoHou.season, '秋');
+    assert.deepEqual(r.tiaoHou.xi, ['辛']);
+    assert.deepEqual(r.tiaoHou.ji, ['金']);
+    assert.ok(r.tiaoHou.source?.book === '穷通宝鉴', '调候须标注出处');
+    assert.ok(r.tiaoHou.note.includes('两个维度'), '须提示调候与旺衰不互相替代');
+});
+
+test('P1.6 交运：癸日主男命首步大运起于 9 岁 / 1998 年', () => {
+    const r = computeBazi({ year: 1990, month: 8, day: 16, hour: 14, minute: 30, gender: 'male' });
+    assert.equal(r.jiaoYun.startAge, 9);
+    assert.equal(r.jiaoYun.startYear, 1998);
+    assert.ok(r.jiaoYun.text.includes('乙酉'), '交运点对齐首步大运 乙酉');
+});

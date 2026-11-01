@@ -1,7 +1,7 @@
 // src/client/views/fengshui-view.js — 风水页：八宅命卦 + 流年九宫飞星（年家紫白）。
 // 两个子表单：命卦（生辰必填）/ 飞星（只填流年，可选）。纯渲染，state 由 panel 代理读取。
 import { h } from '../react.js';
-import { Card, Field, Input, Seg, Badge, Glyph, StatGrid, Loading, Empty, ErrorBar, Notes, FooterNote, CalendarField, calendarHint } from './ui.js';
+import { Card, Field, Input, Select, Seg, Badge, Glyph, StatGrid, Loading, Empty, ErrorBar, Notes, FooterNote, CalendarField, calendarHint } from './ui.js';
 import { WUXING_COLOR } from './ui.js';
 
 const EIGHT_DIRS = ['正北', '东北', '正东', '东南', '正南', '西南', '正西', '西北'];
@@ -54,6 +54,12 @@ export function FengshuiView({ state }) {
 		c.fyError ? ErrorBar({ children: c.fyError }) : null,
 		c.fyLoading ? Loading({ lines: 2, text: '本地飞星中…' }) : null,
 		c.fyResult ? FlyingResult({ result: c.fyResult }) : null,
+
+		// 玄空飞星（坐向三盘叠加 + 格局）
+		XuanKongForm({ c }),
+		c.xkError ? ErrorBar({ children: c.xkError }) : null,
+		c.xkLoading ? Loading({ lines: 3, text: '本地玄空排盘中…' }) : null,
+		c.xkResult ? XuanKongResult({ result: c.xkResult }) : null,
 	);
 }
 
@@ -147,5 +153,99 @@ function FlyingResult({ result }) {
 			})),
 		),
 		h('div', { className: 'o-note', style: { marginTop: '7px' } }, '年家紫白顺飞：五黄/二黑所临方当年宜静；吉星所临方可摆放催旺物。民俗参考，不构成现场勘舆结论。'),
+	);
+}
+
+/** 24 山（罗盘 360° 每山 15°）下拉选项：山名 + 度数 + 元龙阴阳。 */
+const MOUNTAIN_OPTS = [
+	['', '选坐山…'],
+	['壬', '壬 345°·地元阳'], ['子', '子 0°·天元阴'], ['癸', '癸 15°·人元阴'],
+	['丑', '丑 30°·地元阴'], ['艮', '艮 45°·天元阳'], ['寅', '寅 60°·人元阳'],
+	['甲', '甲 75°·地元阳'], ['卯', '卯 90°·天元阴'], ['乙', '乙 105°·人元阴'],
+	['辰', '辰 120°·地元阴'], ['巽', '巽 135°·天元阳'], ['巳', '巳 150°·人元阳'],
+	['丙', '丙 165°·地元阳'], ['午', '午 180°·天元阴'], ['丁', '丁 195°·人元阴'],
+	['未', '未 210°·地元阴'], ['坤', '坤 225°·天元阳'], ['申', '申 240°·人元阳'],
+	['庚', '庚 255°·地元阳'], ['酉', '酉 270°·天元阴'], ['辛', '辛 285°·人元阴'],
+	['戌', '戌 300°·地元阴'], ['乾', '乾 315°·天元阳'], ['亥', '亥 330°·人元阳'],
+];
+
+/** 玄空表单：坐山必填 + 向山可选（缺省按对宫推）+ 年份可选（定元运）。 */
+function XuanKongForm({ c }) {
+	const f = c.xkForm ?? {};
+	return h(Card, { title: '玄空飞星（坐向三盘叠加）', tone: 'gold' },
+		h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: '7px', alignItems: 'flex-end' } },
+			h('div', { className: 'o-field', style: { flex: '1 1 130px' } },
+				h('span', { className: 'o-label' }, '坐山（必填）'),
+				h(Select, { tf: 'xkSitting', defaultValue: f.xkSitting ?? '', options: MOUNTAIN_OPTS })),
+			h('div', { className: 'o-field', style: { flex: '1 1 130px' } },
+				h('span', { className: 'o-label' }, '向山（可省）'),
+				h(Select, {
+					tf: 'xkFacing',
+					defaultValue: f.xkFacing ?? '',
+					options: [['', '按对宫推'], ...MOUNTAIN_OPTS.slice(1)],
+				})),
+			h('div', { className: 'o-field', style: { flex: '0 0 84px' } },
+				h('span', { className: 'o-label' }, '年份'),
+				h(Input, { tf: 'xkYear', placeholder: '缺省今年', inputMode: 'numeric', defaultValue: f.xkYear ?? '' })),
+			h('button', {
+				'data-action': 'xuankong-submit', 'data-xuanji-btn': '1',
+				disabled: !!c.xkLoading,
+			}, c.xkLoading ? '排盘中…' : '玄空排盘'),
+		),
+		h('div', { className: 'o-note', style: { marginTop: '7px' } },
+			'三元九运三盘：运盘（当运星入中顺飞）· 山盘（坐山宫运星入中，坐山阴阳定顺逆）· 向盘（向首宫运星入中，向首阴阳定顺逆）。格局已对公开盘逐字校验。'),
+	);
+}
+
+/** 玄空结果：格局头卡 + 三盘叠加九宫格（山/运/向 三列，旺星着色）。 */
+function XuanKongResult({ result }) {
+	const meta = result.meta ?? {};
+	const chart = result.chart ?? [];
+	const pTone = result.pattern?.key === '旺山旺向' ? 'good'
+		: result.pattern?.key === '上山下水' ? 'bad'
+		: (result.pattern?.key === '双星会向' || result.pattern?.key === '双星会坐') ? 'warn' : null;
+	// 洛书九宫屏幕布局：巽离坤 / 震中兑 / 艮坎乾
+	const GRID = [['巽', '离', '坤'], ['震', '中', '兑'], ['艮', '坎', '乾']];
+	return h('div', { className: 'o-anim-rise' },
+		h(Card, { tone: pTone === 'good' ? 'gold' : pTone === 'bad' ? 'accent' : null, title: '格局' },
+			h('div', { style: { display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' } },
+				result.pattern ? h(Badge, { tone: pTone ?? 'gold' }, result.pattern.key) : null,
+				meta.periodName ? h(Badge, { tone: 'accent' }, meta.periodName) : null,
+			),
+			meta.sitting ? h('div', { style: { fontSize: '11px', color: 'var(--o-muted)', marginTop: '5px' } },
+				`${meta.sitting}，${meta.facing}`) : null,
+			result.pattern?.text ? h('div', { style: { fontSize: '11.5px', lineHeight: '1.7', color: 'var(--o-muted)', marginTop: '5px' } },
+				result.pattern.text) : null,
+		),
+		h(Card, { title: '三盘叠加（山 / 运 / 向）' },
+			h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' } },
+				GRID.flatMap((row) => row.map((palace) => {
+					const r = chart.find((x) => x.palace === palace);
+					if (!r) return null;
+					const wangShan = r.shan === meta.period;
+					const wangXiang = r.xiang === meta.period;
+					return h('div', { key: palace, style: {
+						border: `1px solid ${wangShan || wangXiang ? 'color-mix(in srgb, var(--o-gold) 45%, var(--o-border))' : 'var(--o-border)'}`,
+						borderRadius: 'var(--o-r-sm)',
+						background: 'var(--o-surface-2)',
+						padding: '5px 4px', minHeight: '46px',
+					} },
+						h('div', { style: { fontSize: '9px', color: 'var(--o-ghost)' } },
+							`${palace}宫${r.direction ? '·' + r.direction : ''}`),
+						h('div', { style: { display: 'flex', gap: '5px', marginTop: '3px' } },
+							h('span', { style: { fontSize: '13px', fontFamily: 'var(--o-serif)', color: wangShan ? 'var(--o-gold)' : 'var(--o-text)' } }, String(r.shan)),
+							h('span', { style: { fontSize: '13px', fontFamily: 'var(--o-serif)', color: 'var(--o-faint)' } }, String(r.yun)),
+							h('span', { style: { fontSize: '13px', fontFamily: 'var(--o-serif)', color: wangXiang ? 'var(--o-lucky)' : 'var(--o-text)' } }, String(r.xiang)),
+						),
+						h('div', { style: { fontSize: '8px', color: 'var(--o-ghost)', display: 'flex', gap: '5px', marginTop: '2px' } },
+							h('span', null, '山'), h('span', null, '运'), h('span', null, '向')),
+					);
+				})),
+			),
+			h('div', { className: 'o-note', style: { marginTop: '6px' } },
+				'每宫三列：山星 / 运星 / 向星。金色 = 山星为当运旺星（旺丁），绿色 = 向星为当运旺星（旺财）。'),
+		),
+		h('div', { className: 'o-note', style: { marginTop: '7px' } }, meta.note ?? ''),
+		result.disclaimer ? FooterNote({ children: result.disclaimer }) : null,
 	);
 }

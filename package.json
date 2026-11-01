@@ -79,6 +79,7 @@
     "pretest": "npm run build",
     "test": "node --test test/*.test.mjs",
     "probe": "node probe-engines.mjs",
+    "verify": "node scripts/verification.mjs && node scripts/generate-offline-page.mjs",
     "release": "node scripts/release.mjs"
   },
   "dsh": {

@@ -248,3 +248,32 @@ test('值符随时干、值使随时支：两盘各自沿空间环刚转，逐�
         }
     }
 });
+
+// ── P1.8 深度：击刑/入墓/门迫/干宫生克/十干克应（盘面自动标注 + 隐患汇总）。
+test('P1.8 击刑：戊落震三宫（正东）为击刑', () => {
+    const r = computeQimen(CASE);
+    assert.equal(r.hazards.jiXing.includes('正东'), true, '戊在震3必击刑');
+    const dong = r.palaces['正东'];
+    assert.equal(dong.jiXing, true);
+    assert.equal(dong.tianYi, '戊');
+});
+
+test('P1.8 入墓：癸落巽四宫(东南)/丁落乾六宫(西北) 入墓', () => {
+    const r = computeQimen(CASE);
+    assert.equal(r.palaces['东南'].ruMu, true);
+    assert.equal(r.palaces['西北'].ruMu, true);
+});
+
+test('P1.8 十干克应：天盘仪+地盘仪 命中通行口诀子集', () => {
+    const r = computeQimen(CASE);
+    const k = Object.values(r.palaces).find((p) => p.shiGanKeYing);
+    assert.ok(k, '至少有一个宫命中十干克应口诀');
+    assert.ok(k.shiGanKeYing.length > 0);
+});
+
+test('P1.8 干宫生克：每宫标注天盘仪与宫的生克关系', () => {
+    const r = computeQimen(CASE);
+    for (const p of Object.values(r.palaces)) {
+        assert.ok(typeof p.ganGong === 'string' && p.ganGong.length > 0, `宫 ${p.palace} 应标注干宫生克`);
+    }
+});

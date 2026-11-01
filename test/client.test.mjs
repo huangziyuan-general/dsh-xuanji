@@ -140,7 +140,7 @@ test('控制器：switch-view / card-flip 事件代理改状态', () => {
     const { createXuanjiController, initialState } = loaded.exports.__internals;
     let renders = 0;
     const controller = createXuanjiController({ onChange: () => { renders += 1; } });
-    assert.deepEqual(Object.keys(controller.state), ['view', 'trend', 'tarot', 'bazi', 'almanac', 'quick', 'chenggu', 'qimen', 'fengshui', 'match', 'liuyao']);
+    assert.deepEqual(Object.keys(controller.state), ['view', 'trend', 'tarot', 'bazi', 'almanac', 'quick', 'chenggu', 'qimen', 'fengshui', 'match', 'liuyao', 'mbti', 'daliuren']);
     const node = new El('div');
     node.setAttribute('data-xuanji-panel', '1');
     const dispose = controller.attach(node);
@@ -574,4 +574,64 @@ test('构建产物守卫：PLUGIN_VERSION 与 package.json 一致；fence/PREFIX
     const serverFence = http.match(/FENCE_HEADER = '([^']+)'/)?.[1];
     assert.equal(clientBase, serverPrefix, 'client 与 server 的挂载点必须一致');
     assert.equal(clientFence, serverFence, 'client 与 server 的 fence 头必须一致');
+});
+
+
+// ── MBTI 控制器流：取题 → 逐题作答（绝不代填）→ 交卷计分；缺题交不了卷。 ──
+test('控制器：MBTI 答卷流（pick/submit 闸门）', async () => {
+    const QUIZ = { meta: { mode: 'quiz' }, questions: Array.from({ length: 24 }, (_, i) => ({ id: i + 1, dim: 'EI', text: `题${i}`, options: ['甲', '乙'] })) };
+    const SCORED = { meta: { answered: 24, expected: 24, complete: true }, type: 'ISTJ', dimensions: {}, profile: '测试画像', sources: [], disclaimer: '测试免责' };
+    const calls = [];
+    const { loaded } = boot((url) => {
+        calls.push(String(url));
+        return Promise.resolve({ json: () => Promise.resolve({ ok: true, value: String(url).includes('answers=') ? SCORED : QUIZ }) });
+    });
+    const { createXuanjiController } = loaded.exports.__internals;
+    const controller = createXuanjiController();
+    const node = new El('div');
+    controller.attach(node);
+    const settle = () => new Promise((r) => setImmediate(r));
+
+    const startBtn = new El('button');
+    startBtn.setAttribute('data-action', 'mbti-start');
+    node.appendChild(startBtn);
+    startBtn.click();
+    await settle();
+    await settle();
+    assert.equal(controller.state.mbti.phase, 'quiz', '取题后进入答卷态');
+    assert.equal(controller.state.mbti.questions.length, 24);
+
+    // 没答完就点交卷：不发起计分请求、报错留在本页
+    const submitBtn = new El('button');
+    submitBtn.setAttribute('data-action', 'mbti-submit');
+    node.appendChild(submitBtn);
+    submitBtn.click();
+    assert.ok(controller.state.mbti.error, '缺题交卷必须报错');
+    assert.equal(calls.length, 1, '缺题时不得发起计分请求');
+
+    // 只点 23 题仍交不了卷
+    for (let i = 0; i < 23; i++) {
+        const pick = new El('button');
+        pick.setAttribute('data-action', 'mbti-pick');
+        pick.setAttribute('data-val', String(i % 2));
+        node.appendChild(pick);
+        pick.click();
+    }
+    assert.equal(controller.state.mbti.answers.filter((a) => a === 0 || a === 1).length, 23);
+    submitBtn.click();
+    assert.equal(calls.length, 1, '23/24 题不得交卷');
+
+    // 补最后一题 → 交卷成功，进入结果态
+    const last = new El('button');
+    last.setAttribute('data-action', 'mbti-pick');
+    last.setAttribute('data-val', '1');
+    node.appendChild(last);
+    last.click();
+    submitBtn.click();
+    await settle();
+    await settle();
+    assert.equal(calls.length, 2, '全答完才发起计分');
+    assert.match(calls[1], /\/api\/xuanji\/mbti\?answers=/, '计分请求带 answers');
+    assert.equal(controller.state.mbti.phase, 'result', '交卷后进入结果态');
+    assert.equal(controller.state.mbti.result.type, 'ISTJ');
 });

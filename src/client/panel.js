@@ -1,4 +1,4 @@
-// src/client/panel.js — 右侧栏「玄机阁」面板外壳：品牌头 + 十页导航 + 视图容器。
+// src/client/panel.js — 右侧栏「玄机阁」面板外壳：品牌头 + 十二页导航 + 视图容器。
 //
 // 状态机与业务校验仍放在 createXuanjiController（headless 可直测，不必渲染 React）；
 // 这个文件负责「看起来像正经产品」的那一层：导航奏GRAPH、疑问 forms、交流与析木 HEADER。
@@ -18,6 +18,8 @@ import { QimenView } from './views/qimen-view.js';
 import { FengshuiView } from './views/fengshui-view.js';
 import { MatchView } from './views/match-view.js';
 import { LiuyaoView } from './views/liuyao-view.js';
+import { MbtiView } from './views/mbti-view.js';
+import { DaliurenView } from './views/daliuren-view.js';
 
 export { PANEL_ATTR };
 
@@ -36,6 +38,8 @@ export const VIEWS = [
 	['fengshui', '风水', '宅'],
 	['match', '合婚', '合'],
 	['liuyao', '六爻', '爻'],
+	['mbti', '心性', '性'],
+	['daliuren', '六壬', '壬'],
 ];
 
 /** 初始状态。 */
@@ -49,10 +53,13 @@ export function initialState() {
 		quick: { kind: 'xiaoliuren', question: '', num1: '', num2: '', num3: '', loading: false, error: null, result: null },
 		chenggu: { form: null, loading: false, error: null, result: null },
 		qimen: { form: null, loading: false, error: null, result: null },
-		fengshui: { form: null, fyForm: null, loading: false, fyLoading: false, error: null, fyError: null, result: null, fyResult: null },
+		fengshui: { form: null, fyForm: null, xkForm: null, loading: false, fyLoading: false, xkLoading: false, error: null, fyError: null, xkError: null, result: null, fyResult: null, xkResult: null },
 		match: { form: null, loading: false, error: null, result: null },
 		// 六爻：tosses 是六次摇币记录（每次三枚，true=背=阳面），只在用户点击时产生。
 		liuyao: { question: '', tosses: [], loading: false, error: null, result: null },
+		// MBTI：phase intro→quiz→result；answers 只在用户点击选项时产生（绝不代填）。
+		mbti: { phase: 'intro', questions: [], answers: [], idx: 0, loading: false, submitting: false, error: null, result: null },
+		daliuren: { form: null, loading: false, error: null, result: null },
 	};
 }
 
@@ -375,6 +382,37 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 		});
 	};
 
+	/** 玄空飞星查询：坐山必填，向山/流年可选。 */
+	const buildXuanKongQuery = (f) => {
+		const sitting = (f.xkSitting ?? '').trim();
+		if (!sitting) throw new Error('玄空排盘必填坐山（24 山选一，如「子」「艮」）——缺坐向不可排，不代填。');
+		const q = new URLSearchParams({ sitting });
+		const facing = (f.xkFacing ?? '').trim();
+		if (facing) q.set('facing', facing);
+		const fy = (f.xkYear ?? '').trim();
+		if (fy !== '') {
+			const n = Number(fy);
+			if (!Number.isInteger(n) || n < 1864 || n > 2043 + 179) throw new Error('流年请填 1864–2043 的整数（三元九运区间）。');
+			q.set('fyYear', String(n));
+		}
+		return `/fengshui?${q.toString()}`;
+	};
+
+	const doXuanKong = (node) => {
+		const f = readInputs(node);
+		state.fengshui = { ...state.fengshui, xkForm: f };
+		state.fengshui = { ...state.fengshui, xkLoading: true, xkError: null };
+		notify();
+		return apiFetch(buildXuanKongQuery(f)).then((result) => {
+			state.fengshui = { ...state.fengshui, xkLoading: false, xkResult: result };
+			notify();
+		}, (error) => {
+			const msg = String(error?.message ?? error);
+			state.fengshui = { ...state.fengshui, xkLoading: false, xkError: msg };
+			notify();
+		});
+	};
+
 	const doFengshuiFly = (node) => {
 		const f = readInputs(node);
 		state.fengshui = { ...state.fengshui, fyForm: f };
@@ -436,6 +474,79 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 		return runView(node, 'liuyao', buildLiuyaoQuery);
 	};
 
+	// ── MBTI：问卷从服务端取（题面单一事实来源），答案只从点击产生。 ──
+	const doMbtiStart = async () => {
+		state.mbti = { ...state.mbti, loading: true, error: null };
+		notify();
+		try {
+			const data = await apiFetch('/mbti');
+			state.mbti = {
+				...state.mbti,
+				loading: false,
+				phase: 'quiz',
+				questions: data.questions ?? [],
+				answers: (data.questions ?? []).map(() => null),
+				idx: 0,
+				result: null,
+			};
+		} catch (error) {
+			failTo('mbti', error);
+			return;
+		}
+		notify();
+	};
+
+	const doMbtiPick = (target) => {
+		const answers = [...(state.mbti.answers ?? [])];
+		const idx = state.mbti.idx ?? 0;
+		const val = Number(target.getAttribute('data-val'));
+		if (!answers.length || idx >= answers.length || ![0, 1].includes(val)) return;
+		answers[idx] = val;
+		// 答完往前走一格，停在最后一题等交卷（不自动交卷——让用户能回头改）。
+		state.mbti = { ...state.mbti, answers, idx: Math.min(idx + 1, answers.length - 1) };
+		notify();
+	};
+
+	const doMbtiPrev = () => {
+		state.mbti = { ...state.mbti, idx: Math.max((state.mbti.idx ?? 0) - 1, 0) };
+		notify();
+	};
+
+	const doMbtiSubmit = async () => {
+		const answers = state.mbti.answers ?? [];
+		if (answers.some((a) => a !== 0 && a !== 1)) {
+			state.mbti = { ...state.mbti, error: '24 题要全部作答才能交卷——缺一题不猜，回去补上。' };
+			notify();
+			return;
+		}
+		state.mbti = { ...state.mbti, submitting: true, error: null };
+		notify();
+		try {
+			const q = new URLSearchParams({ answers: answers.join(',') });
+			const result = await apiFetch(`/mbti?${q.toString()}`);
+			state.mbti = { ...state.mbti, submitting: false, phase: 'result', result };
+		} catch (error) {
+			state.mbti = { ...state.mbti, submitting: false, phase: 'quiz', error: String(error?.message ?? error) };
+			notify();
+			return;
+		}
+		notify();
+	};
+
+	// ── 大六壬：占时起课，口径与奇门同（hourZhi→0–23 取时辰起点）。 ──
+	const buildDaliurenQuery = (f) => {
+		const q = birthTriple(f);
+		if (!f.hourZhi) throw new Error('大六壬必填占时——缺占时天地盘不可布，这是这一页唯一不能代填的输入。');
+		q.set('hour', String(hourZhiToHour(f.hourZhi)));
+		return `/daliuren?${q.toString()}`;
+	};
+
+	const doDaliuren = (node) => {
+		const f = readInputs(node);
+		state.daliuren = { ...state.daliuren, form: f };
+		return runView(node, 'daliuren', () => buildDaliurenQuery(f));
+	};
+
 	/** 事件代理：容器上原生 click，按 data-action 分发。返回 disposer。 */
 	const attach = (node) => {
 		const onClick = (event) => {
@@ -462,11 +573,17 @@ export function createXuanjiController({ onChange = () => {} } = {}) {
 					if (action === 'qimen-submit') { void doQimen(node); return; }
 					if (action === 'fengshui-submit') { void doFengshui(node); return; }
 					if (action === 'fengshui-fly-submit') { void doFengshuiFly(node); return; }
+					if (action === 'xuankong-submit') { void doXuanKong(node); return; }
 					if (action === 'match-submit') { void doMatch(node); return; }
 					if (action === 'liuyao-toss') { doLiuyaoToss(); return; }
 					if (action === 'liuyao-reset') { doLiuyaoReset(); return; }
 					if (action === 'liuyao-submit') { void doLiuyaoSubmit(node); return; }
 					if (action === 'tarot-draw') { void doTarot(node); return; }
+					if (action === 'mbti-start') { void doMbtiStart(); return; }
+					if (action === 'mbti-pick') { doMbtiPick(target); return; }
+					if (action === 'mbti-prev') { doMbtiPrev(); return; }
+					if (action === 'mbti-submit') { void doMbtiSubmit(); return; }
+					if (action === 'daliuren-submit') { void doDaliuren(node); return; }
 					if (action === 'card-flip') {
 						const ci = Number(target.getAttribute('data-ci'));
 						const flipped = new Set(state.tarot.flipped);
@@ -519,6 +636,8 @@ const SUBTITLES = {
 	fengshui: '八宅命卦 · 四吉四凶与流年飞星',
 	match: '八字合婚 · 属相十神与跨盘合会',
 	liuyao: '六爻纳甲 · 摇卦成卦与动爻变卦',
+	mbti: 'MBTI · 二十四题十六型确定性计分',
+	daliuren: '大六壬 · 天地盘四课三传（实验性）',
 };
 function panelSubtitle(view) {
 	return SUBTITLES[view] ?? SUBTITLES.trend;
@@ -559,7 +678,7 @@ export function XuanjiPanel() {
 		),
 	);
 
-	// ── 六页导航 ──
+	// ── 十二页导航 ──
 	const nav = h('div', { className: 'o-nav', role: 'tablist' },
 		VIEWS.map(([id, label, glyph]) => h('button', {
 			key: id,
@@ -589,6 +708,8 @@ export function XuanjiPanel() {
 			s.view === 'fengshui' ? h(FengshuiView, { state: s }) : null,
 			s.view === 'match' ? h(MatchView, { state: s }) : null,
 			s.view === 'liuyao' ? h(LiuyaoView, { state: s }) : null,
+			s.view === 'mbti' ? h(MbtiView, { state: s }) : null,
+			s.view === 'daliuren' ? h(DaliurenView, { state: s }) : null,
 		),
 	);
 }
