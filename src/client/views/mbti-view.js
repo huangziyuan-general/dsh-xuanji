@@ -13,15 +13,17 @@ export function MbtiView({ state }) {
 		m.phase === 'quiz' && m.questions?.length ? MbtiQuiz({ state: m }) : null,
 		m.phase === 'result' && m.result ? MbtiResult({ result: m.result }) : null,
 		(!m.phase || m.phase === 'intro') && !m.loading
-			? Empty({
-				glyph: '性',
-				title: '24 题二选一，测你的十六型',
-				hint: '答案只在你点的时候产生——本地确定性计分，不联网不代答。',
-				children: h('button', {
-					'data-action': 'mbti-start', 'data-xuanji-btn': '1', 'data-variant': 'primary',
-					disabled: !!m.loading, style: { marginTop: '10px' },
-				}, '开始答卷'),
-			})
+			? h('div', null,
+				// 注意：Empty 不收 children（签名只有 glyph/title/hint），按钮必须自己渲染——
+				// 早先把开始按钮塞进 Empty 的 children 里被静默丢弃，intro 页就没有可点的东西了。
+				Empty({ glyph: '性', title: '24 题二选一，测你的十六型', hint: '答案只在你点的时候产生——本地确定性计分，不联网不代答。' }),
+				h('div', { style: { display: 'flex', justifyContent: 'center', marginTop: '4px' } },
+					h('button', {
+						'data-action': 'mbti-start', 'data-xuanji-btn': '1', 'data-variant': 'primary',
+						disabled: !!m.loading,
+					}, '开始答卷'),
+				),
+			)
 			: null,
 	);
 }

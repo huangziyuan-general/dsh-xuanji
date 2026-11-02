@@ -185,11 +185,13 @@ export const Loading = ({ lines = 3, text = '本地排盘中…' }) => h('div', 
 	h('div', { style: { fontSize: '11px', color: 'var(--o-faint)', animation: 'o-breathe 1.6s ease-in-out infinite' } }, text),
 );
 
-/** 空状态：给一个「下一步做什么」的引导，而不是干瘪一行字。 */
-export const Empty = ({ glyph = '☯', title, hint = null }) => h('div', { className: 'o-empty' },
+/** 空状态：给一个「下一步做什么」的引导，而不是干瘪一行字。children 透传（如开始按钮）——
+ *  早期签名不收 children，调用方塞进来的节点会被静默丢弃，页面上什么都没有还不报错。 */
+export const Empty = ({ glyph = '☯', title, hint = null, children = null }) => h('div', { className: 'o-empty' },
 	h('div', { className: 'o-empty-glyph' }, glyph),
 	h('div', { className: 'o-empty-text' }, title),
 	hint ? h('div', { style: { fontSize: '10.5px', opacity: .75, lineHeight: 1.6 } }, hint) : null,
+	children,
 );
 
 /** 错误条。 */
