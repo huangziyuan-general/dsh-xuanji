@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.4.0（2026-11-02）
+
+新增：
+
+- `xuanji_mbti`：MBTI 十六型人格。24 题本地确定性问卷；无 answers 返回问卷，收齐 24 个 0/1 出类型、四维倾向与白话档案；平票按 E/S/T/J 落档并如实标注。
+- `xuanji_daliuren`（实验性）：天地盘（月将加时）、四课、贼克法三传；返回标注「实验性、三传九宗门其余八法待校准」。
+- `xuanji_tarot`：`deck=full` 78 全牌（新增 56 小阿卡纳：权杖/圣杯/宝剑/星币）；新增 `mode=five` 五牌阵（过去/现在/未来/建议/结果）。
+- `xuanji_fengshui`：`action=xuankong` 玄空飞星——三元九运运盘/山盘/向盘/宅命盘，旺山旺向/上山下水/双星会局格局判定；REST `GET /fengshui` 支持 sitting/facing（缺坐山 fail-fast）。
+- `xuanji_bazi`：新增《穷通宝鉴》调候用神（日干×节气月令寒暖燥湿喜忌，与旺衰喜用互补、不互相替代）；起运时间补交运岁数。
+- `xuanji_liuyao`：新增卦体（宫属/世应/动爻数）与用神定位（依问句取六亲用神）+ 应期启发式（非定论）。
+- `xuanji_qimen`：逐宫进阶指标——六仪击刑、三奇六仪入墓、门迫、干宫生克、十干克应（通行口诀子集），并汇总盘面隐患宫位。
+- 可核验基建：`lib/engine/verify.js`（公开对拍验证，锚点独立重算）→ `docs/verification.html` + `npm run verify`；`citations.js`（引文索引 + 《穷通宝鉴》调候提要）；`trace.js`（推导链）/ `shadow-id.js`（影子盘 ID）/ `caliber.js`（口径对照）。
+- `docs/offline.html` 离线单页（`node scripts/generate-offline-page.mjs` 再生）；`screenshots.json` 市场详情页截图声明。
+- 面板十页 → 十二页：新增「心性（MBTI）」「六壬（大六壬）」两页；风水页新增「玄空飞星」子表单；REST 新增 `GET /mbti`、`GET /daliuren`。
+
+修正：
+
+- 玄空飞星引擎：逆飞公式 off-by-one（-2 → -1）；三元龙阴阳表修正（此前地元/天元四正/人元阴阳误标，顺逆全反）；格局判定改「到山到向」双条件；向盘入中数改按向首宫运星；元运支持 180 年轮回（2044 起入下一轮一运）。九运 14 坐向与公开飞星盘表逐字一致。
+- 纪律第 4 条工具路由补 MBTI / 大六壬；生成 HTML 页面（verification / offline）字段统一 `escapeHtml` 转义。
+
+测试：408 例全绿；新增 foundation / gates / verification / daliuren / mbti / tarot78 用例，fengshui 增补九运 14 坐向格局金标准。
+
 ## 0.3.1（2026-10-23）
 
 独立审查（AUDIT-2026-10-23.md）逐条修复：每条先补会红的用例再改实现，并在 /tmp 副本用「撤实现留测试」反验过红→绿。

@@ -8,7 +8,7 @@ BaZi (Four Pillars) · Zi Wei Dou Shu (Purple Star Astrology) · Mei Hua Yi Shu 
 
 *Every number is computed on-device by deterministic engines — stem-branches, stars, hexagrams and bone weights are never inferred by the model. The model only interprets.*
 
-[![release](https://img.shields.io/badge/release-v0.3.0-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
+[![release](https://img.shields.io/badge/release-v0.4.0-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![tests](https://img.shields.io/badge/tests-passing-green)]()
 

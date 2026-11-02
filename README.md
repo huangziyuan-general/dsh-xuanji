@@ -8,7 +8,7 @@
 
 *全部由本地确定性引擎计算——干支、星曜、卦象、骨重零模型推演，模型只负责解读。*
 
-[![release](https://img.shields.io/badge/release-v0.3.1-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
+[![release](https://img.shields.io/badge/release-v0.4.0-blue)](https://github.com/huangziyuan-general/dsh-xuanji/releases)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![tests](https://img.shields.io/badge/tests-passing-green)]()
 
@@ -89,9 +89,9 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 - **改（revise）**：同参数重跑结果逐位一致——用户改口重问不算「新盘」，可复算可对比；
 - **纠（rectify）**：口径修正（夏令时、真太阳时、晚子时流派）全部写进 `meta.notes`，纠偏前后盘面差异可追溯，不静默改盘。
 
-## 右侧栏面板（十页）
+## 右侧栏面板（十二页）
 
-插件自带右侧栏 client 面板（「玄机阁」tab），十个视图全部只读、零 token。数据来自 `/api/xuanji/*`（与 `xuanji_*` 工具同引擎，只读确定性计算）；缺输入一律 fail-fast 可见，绝不代填。
+插件自带右侧栏 client 面板（「玄机阁」tab），十二个视图全部只读、零 token。数据来自 `/api/xuanji/*`（与 `xuanji_*` 工具同引擎，只读确定性计算）；缺输入一律 fail-fast 可见，绝不代填。
 
 <div align="center">
 
@@ -114,9 +114,11 @@ dsh plugin --profile web add link:/path/to/dsh-xuanji
 - **快占**：小六壬报三数 / 梅花易数报两数（随口报数 + 所问何事，秒级出落宫/卦象与体用断语）；
 - **塔罗**：每日一牌 / 三牌阵（所问何事输入框常驻），CSS 3D 翻牌动画；
 - **奇门**：日期 + 时辰下拉 → 阳遁/阴遁局数、值符、旬空 + 九宫格（地_天_门，吉门着色），时家转盘确定性计算；
-- **风水**：八宅命卦（东四/西四 + 四吉四凶方位）+ 流年九宫飞星（年家紫白，fyYear 单独可查，标准紫白序列）；
+- **风水**：八宅命卦（东四/西四 + 四吉四凶方位）+ 流年九宫飞星（年家紫白，fyYear 单独可查）+ 玄空飞星子表单（坐山/向山 24 山 + 年份 → 格局徽章 + 三盘叠加九宫格，当运旺星着色）；
 - **合婚**：双方生辰（年月日 + 时辰下拉 + 历法 + 称谓）→ 属相关系 + 双向十神 + 跨盘合会 + 分档（冲刑害只讲「摩擦点」）；
-- **六爻**：逐爻点击摇卦（三枚铜钱正反由用户点击产生，与传统掷币同义；引擎不代摇、不预填）→ 本卦/变卦、八宫世应、逐爻纳甲六亲六神、旺衰旬空月破、动爻回头生克、六亲主事速查。
+- **六爻**：逐爻点击摇卦（三枚铜钱正反由用户点击产生，与传统掷币同义；引擎不代摇、不预填）→ 本卦/变卦、八宫世应、逐爻纳甲六亲六神、旺衰旬空月破、动爻回头生克、六亲主事速查；
+- **心性（MBTI）**：24 题逐题作答（上一题/下一题）→ 十六型结果 + 四维倾向档案，本地计分零 token；
+- **六壬（大六壬）**：生日 + 占时 → 天地盘、四课、贼克法三传（结果带实验性标注）。
 
 面板深浅主题零探测自适应（`color-mix(currentColor)` 体系），宿主切色无需配置。源码在 `src/client/`，改动后需 `npm run build` 重新产出 `lib/client.js`（dsh 只加载构建产物）。
 
